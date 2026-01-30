@@ -3,9 +3,11 @@ import { Download, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 function Results({ results }) {
+  // Destructure all the goodies from our results object
   const { results: mb_results, correction_factors, recommended_method, recommended_value,
     status, diagnostic_message, rationale, confidence_index, degradation_level } = results;
 
+  // Visualizing the data helps make sense of it. Here's our chart data.
   const chartData = [
     { method: 'SMB', value: mb_results.smb, fill: getColor(mb_results.smb) },
     { method: 'AMB', value: mb_results.amb, fill: getColor(mb_results.amb) },
@@ -13,16 +15,19 @@ function Results({ results }) {
     { method: 'LK-IMB', value: mb_results.lk_imb, fill: getColor(mb_results.lk_imb) }
   ];
 
+  // Helper to pick the right color: Green for good, Red for bad, Yellow for 'meh'.
   function getColor(value) {
     if (value >= 95 && value <= 105) return '#10b981'; // Green
     if (value >= 90) return '#f59e0b'; // Yellow
     return '#ef4444'; // Red
   }
 
+  // This function generates a beautiful, professional PDF report for the user to download.
   const downloadPDF = () => {
     const doc = new jsPDF();
 
     // ==================== FEATURE 1: PROFESSIONAL COVER PAGE ====================
+    // We want the first impression to be "Wow".
 
     // Background color for cover
     doc.setFillColor(31, 78, 120); // Dark blue

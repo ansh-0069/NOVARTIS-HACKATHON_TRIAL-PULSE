@@ -10,10 +10,12 @@ function History() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  // Every time the page number changes, we fetch the new batch of history.
   useEffect(() => {
     fetchHistory();
   }, [page]);
 
+  // Go ask the server for the list of past calculations.
   const fetchHistory = async () => {
     setLoading(true);
     try {
@@ -28,16 +30,18 @@ function History() {
     setLoading(false);
   };
 
+  // When you want to forget a result forever.
   const handleDelete = async (id) => {
-    if (!confirm('Delete this calculation?')) return;
+    if (!confirm('Are you sure you want to delete this calculation?')) return;
     try {
       await axios.delete(`${API_URL}/calculation/${id}`);
-      fetchHistory();
+      fetchHistory(); // Refresh the list so it's gone from the screen too
     } catch (error) {
       alert('Error deleting: ' + error.message);
     }
   };
 
+  // Show a loading state so the user knows we're working on it.
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-12 text-center">
@@ -49,7 +53,8 @@ function History() {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Calculation History</h2>
-      
+
+      {/* Empty state handling - nice and friendly */}
       {calculations.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <p className="text-lg">No calculations saved yet.</p>
@@ -57,6 +62,7 @@ function History() {
         </div>
       ) : (
         <>
+          {/* The main data table */}
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -83,11 +89,10 @@ function History() {
                     <td className="px-4 py-3 text-sm font-semibold">{calc.recommended_method}</td>
                     <td className="px-4 py-3 text-sm font-bold">{calc.recommended_value}%</td>
                     <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        calc.status === 'PASS' ? 'bg-green-100 text-green-700' :
-                        calc.status === 'ALERT' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${calc.status === 'PASS' ? 'bg-green-100 text-green-700' :
+                          calc.status === 'ALERT' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                        }`}>
                         {calc.status}
                       </span>
                     </td>
@@ -106,7 +111,7 @@ function History() {
             </table>
           </div>
 
-          {/* Pagination */}
+          {/* Pagination Controls */}
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-600">
               Showing {calculations.length} of {total} results

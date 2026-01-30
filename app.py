@@ -1,21 +1,21 @@
 import xlsxwriter
 from datetime import datetime
 
-# Create the workbook and worksheets
+# Nice! Now let's set up the workbook and get our sheets ready so we can start adding data.
 workbook = xlsxwriter.Workbook('Mass_Balance_Calculator_Pro.xlsx')
 
-# --- DEFINING FORMATS ---
-# Colors
-header_bg = '#1F4E78'  # Dark Blue
-header_font = '#FFFFFF' # White
-input_bg = '#FFF2CC'   # Light Yellow
-output_bg = '#D9E1F2'  # Light Blue
-pass_bg = '#C6EFCE'    # Light Green
-alert_bg = '#FFEB9C'   # Light Yellow/Orange
-oos_bg = '#FFC7CE'     # Light Red
+# --- LET'S STYLE THINGS UP ---
+# We want our spreadsheet to look professional and easy to read, so here are some colors we'll use.
+header_bg = '#1F4E78'  # A nice deep blue for headers
+header_font = '#FFFFFF' # Clean white text to pop against the blue
+input_bg = '#FFF2CC'   # Soft yellow to highlight where users should type
+output_bg = '#D9E1F2'  # Calming blue for result cells
+pass_bg = '#C6EFCE'    # Happy green for passing results
+alert_bg = '#FFEB9C'   # Cautionary yellow/orange for alerts
+oos_bg = '#FFC7CE'     # Red to immediately signal something is out of spec
 border_color = '#000000'
 
-# Format Objects
+# Now we define the actual format objects to apply these styles.
 header_fmt = workbook.add_format({
     'bold': True, 'bg_color': header_bg, 'font_color': header_font,
     'border': 1, 'align': 'center', 'valign': 'vcenter', 'font_size': 12
@@ -38,22 +38,23 @@ result_fmt = workbook.add_format({
     'num_format': '0.00', 'bold': True
 })
 
-# Conditional Formats (Green/Red text)
+# We also need conditional formats to dynamically color text green or red based on the results.
 pass_fmt = workbook.add_format({'bg_color': pass_bg, 'font_color': '#006100'})
 alert_fmt = workbook.add_format({'bg_color': alert_bg, 'font_color': '#9C5700'})
 oos_fmt = workbook.add_format({'bg_color': oos_bg, 'font_color': '#9C0006'})
 
 # --- TAB 1: DATA ENTRY ---
+# This is the main interface where the analyst enters their findings.
 ws_input = workbook.add_worksheet('Data Entry')
 ws_input.set_column('A:A', 30)
 ws_input.set_column('B:B', 20)
-ws_input.set_column('C:C', 5) # Spacer
-ws_input.set_column('D:D', 40) # Instructions
+ws_input.set_column('C:C', 5) # Just a little breathing room
+ws_input.set_column('D:D', 40) # Plenty of space for instructions
 
-# Title
+# Let's give it a clear, professional title.
 ws_input.merge_range('A1:B1', 'Mass Balance Calculator - ICH Q1A(R2) Compliant', header_fmt)
 
-# Inputs
+# Here are the fields we need the user to fill out.
 labels = [
     ('Initial API Assay (%)', 98.00),
     ('Stressed API Assay (%)', 82.50),
@@ -62,17 +63,18 @@ labels = [
     ('Parent MW (g/mol)', 500.00),
     ('Degradant MW (g/mol)', 250.00),
     ('RRF (Relative Response Factor)', 0.80),
-    ('Stress Condition', 'Base'), # Dropdown
+    ('Stress Condition', 'Base'), # This one will be a dropdown menu
     ('Sample ID', 'VAL-2026-001'),
     ('Analyst Name', 'A. Singla')
 ]
 
-# Write Labels and Inputs
+# Time to write these labels and input fields to the sheet.
 for i, (label, default) in enumerate(labels):
     row = i + 2
     ws_input.write(row, 0, label, label_fmt)
     if label == 'Stress Condition':
         ws_input.write(row, 1, default, input_text_fmt)
+        # Adding a dropdown list to ensure consistent data entry.
         ws_input.data_validation(row, 1, row, 1, {'validate': 'list',
                                                   'source': ['Acid', 'Base', 'Oxidative', 'Thermal', 'Photolytic']})
     elif isinstance(default, str):
@@ -80,32 +82,33 @@ for i, (label, default) in enumerate(labels):
     else:
         ws_input.write(row, 1, default, input_fmt)
 
-# Instructions Box
+# A helpful instructions box to guide the user.
 ws_input.merge_range('D3:D10', 
-                     "INSTRUCTIONS:\n\n1. Enter experimental data in YELLOW cells.\n\n"
-                     "2. Default values provided for testing.\n\n"
-                     "3. Navigate to 'Diagnostic Report' tab to see analysis.\n\n"
-                     "4. Use 'Trend Tracking' for stability studies.",
+                     "INSTRUCTIONS:\n\n1. Enter your experimental data in the YELLOW cells.\n\n"
+                     "2. I've put in some default values just for testing.\n\n"
+                     "3. Once you're done, check the 'Diagnostic Report' tab for the analysis.\n\n"
+                     "4. 'Trend Tracking' is there if you're doing a stability study.",
                      workbook.add_format({'border': 1, 'valign': 'top', 'text_wrap': True}))
 
-# "Calculate" Button Graphic (Visual only)
+# A visual 'button' to hint to the user where to go next.
 btn_fmt = workbook.add_format({'bg_color': '#4472C4', 'font_color': 'white', 'bold': True, 'align': 'center', 'valign': 'vcenter'})
 ws_input.merge_range('A14:B15', "GO TO REPORT >>", btn_fmt)
 ws_input.write_url('A14', "internal:'Diagnostic Report'!A1")
 
-# --- TAB 2: CALCULATIONS (HIDDEN ENGINE) ---
+# --- TAB 2: CALCULATIONS (THE ENGINE ROOM) ---
+# This sheet does all the heavy lifting but stays hidden to keep things clean.
 ws_calc = workbook.add_worksheet('Calculations')
 ws_calc.set_column('A:B', 25)
 
 ws_calc.write('A1', 'PARAMETER', header_fmt)
 ws_calc.write('B1', 'VALUE', header_fmt)
 
-# Named Ranges mapping for easier formulas
-# In real Excel generation we just point to the cells
+# Mapping cell references for easier formula generation.
+# In a real dynamic system we'd be more robust, but this works for our layout.
 # B3=InitialAPI, B4=StressedAPI, B5=InitDeg, B6=StressedDeg
 # B7=ParentMW, B8=DegMW, B9=RRF
 
-# Calculations
+# Here are the formulas that power the logic.
 calcs = [
     ('Delta API', "='Data Entry'!B3-'Data Entry'!B4"),
     ('Delta Deg', "='Data Entry'!B6-'Data Entry'!B5"),
@@ -126,12 +129,13 @@ for i, (name, formula) in enumerate(calcs):
     ws_calc.write_formula(i+1, 1, formula)
 
 # --- TAB 3: DIAGNOSTIC REPORT ---
+# This is where we present the findings in a clear, actionable report.
 ws_rep = workbook.add_worksheet('Diagnostic Report')
 ws_rep.set_column('A:A', 5)
 ws_rep.set_column('B:E', 18)
 ws_rep.hide_gridlines(2)
 
-# Header
+# Report Header
 ws_rep.merge_range('B2:E3', "MASS BALANCE DIAGNOSTIC REPORT", header_fmt)
 ws_rep.write('B4', "Date:", label_fmt)
 ws_rep.write_formula('C4', "=TODAY()", workbook.add_format({'num_format': 'yyyy-mm-dd', 'align': 'left'}))

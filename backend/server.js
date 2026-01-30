@@ -1,3 +1,4 @@
+// Let's bring in the tools we need
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -7,20 +8,21 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Set up some middleware to handle our requests kindly
 app.use(cors());
 app.use(bodyParser.json());
 
 // Database setup
+// We're using SQLite here for simplicity and portability.
 const db = new sqlite3.Database('./mass_balance.db', (err) => {
     if (err) {
         console.error('❌ Database error:', err);
     } else {
-        console.log('✓ Connected to SQLite database');
+        console.log('✓ Successfully connected to our SQLite database');
     }
 });
 
-// Create tables
+// Let's create our tables if they don't already exist.
 db.run(`
   CREATE TABLE IF NOT EXISTS calculations (
     id TEXT PRIMARY KEY,
@@ -51,13 +53,14 @@ db.run(`
   )
 `, (err) => {
     if (err) {
-        console.error('❌ Error creating table:', err);
+        console.error('❌ Oops, error creating table:', err);
     } else {
-        console.log('✓ Database table ready');
+        console.log('✓ Database table is ready for action');
     }
 });
 
-// Calculation Engine
+// --- THE CALCULATION ENGINE ---
+// This is where the magic happens. We take the inputs and run the physics.
 function calculateMassBalance(data) {
     const {
         initial_api,
@@ -69,79 +72,84 @@ function calculateMassBalance(data) {
         rrf
     } = data;
 
-    // Basic calculations
+    // First, let's do the basic arithmetic
     const delta_api = initial_api - stressed_api;
     const delta_degradants = stressed_degradants - initial_degradants;
     const degradation_level = (delta_api / initial_api) * 100;
 
-    // SMB - Simple Mass Balance
+    // SMB - Simple Mass Balance (Just adding them up)
     const smb = stressed_api + stressed_degradants;
 
-    // AMB - Absolute Mass Balance
+    // AMB - Absolute Mass Balance (Comparing totals)
     const amb = ((stressed_api + stressed_degradants) / (initial_api + initial_degradants)) * 100;
 
-    // RMB - Relative Mass Balance
+    // RMB - Relative Mass Balance (Checking what was lost vs what appeared)
     const rmb = delta_api === 0 ? null : (delta_degradants / delta_api) * 100;
 
-    // Correction factors
+    // Now for the heavy lifting: Correction factors
+    // Lambda adjusts for Response Factors (how the detector sees it)
     const lambda = rrf ? 1 / rrf : 1.0;
+    // Omega adjusts for Molecular Weight changes (fragmentation)
     const omega = (degradant_mw && parent_mw) ? parent_mw / degradant_mw : 1.0;
+
+    // Applying the corrections to the degradants
     const corrected_degradants = stressed_degradants * lambda * omega;
 
-    // LK-IMB - Corrected Mass Balance
+    // LK-IMB - This gives us the final corrected mass balance
     const lk_imb = ((stressed_api + corrected_degradants) / initial_api) * 100;
 
-    // Determine recommended method
+    // Intelligence: Deciding which method is best based on the data
     let recommended_method;
     if (delta_api < 2) {
-        recommended_method = 'AMB';
+        recommended_method = 'AMB'; // Too little change, keep it simple
     } else if (delta_api >= 5 && delta_api <= 20) {
-        recommended_method = 'RMB';
+        recommended_method = 'RMB'; // Good range for relative comparison
     } else {
-        recommended_method = 'LK-IMB';
+        recommended_method = 'LK-IMB'; // Lots of change, trust the corrected model
     }
 
-    // Get recommended value
+    // Pick the winner
     const recommended_value =
         recommended_method === 'AMB' ? amb :
             recommended_method === 'RMB' ? rmb :
                 lk_imb;
 
-    // Calculate confidence index
+    // How confident are we? 
+    // We assume some analytical uncertainty and degrade confidence if results are weird.
     const analytical_uncertainty = 2.5;
     const confidence_index = Math.abs(100 - amb) > 0
         ? 100 * (1 - analytical_uncertainty / Math.abs(100 - amb))
         : 95;
 
-    // Determine status
+    // Pass/Fail check
     let status;
     if (recommended_value >= 95 && recommended_value <= 105) {
         status = 'PASS';
     } else if (recommended_value >= 90) {
         status = 'ALERT';
     } else {
-        status = 'OOS';
+        status = 'OOS'; // Out Of Specification
     }
 
-    // Generate diagnostic message
+    // Now let's generate a helpful message for the analyst
     let diagnostic_message;
     let rationale;
 
     if (amb < 95 && lambda === 1.0 && omega === 1.0) {
-        diagnostic_message = '⚠ Suspected volatile loss detected. Recommend headspace GC-MS analysis.';
-        rationale = 'Low mass balance with no correction factors suggests volatile degradation products.';
+        diagnostic_message = '⚠ Hmm, suspected volatile loss detected. Recommend headspace GC-MS analysis.';
+        rationale = 'Low mass balance with no correction factors suggests volatile degradation products escaped.';
     } else if (amb < 95 && lambda > 1.2) {
         diagnostic_message = '⚠ UV-silent degradant suspected. Consider CAD or CLND detection.';
         rationale = 'High RRF correction suggests chromophore changes in degradation pathway.';
     } else if (delta_api < 2) {
-        diagnostic_message = '✓ Low degradation level. AMB method appropriate.';
+        diagnostic_message = '✓ Low degradation level. AMB method is appropriate here.';
         rationale = 'Minimal degradation observed. Standard absolute method is sufficient.';
     } else if (degradation_level > 20) {
         diagnostic_message = '✓ Mass balance acceptable. Stoichiometric corrections applied.';
-        rationale = 'High degradation with fragmentation detected. LK-IMB correction mandatory per best practices.';
+        rationale = 'High degradation with fragmentation detected. LK-IMB correction is the way to go.';
     } else {
         diagnostic_message = '✓ Mass balance acceptable. Continue routine testing per ICH Q1A(R2).';
-        rationale = 'Results within acceptable limits. No anomalies detected.';
+        rationale = 'Results look good and within limits. No anomalies detected.';
     }
 
     return {
@@ -167,23 +175,23 @@ function calculateMassBalance(data) {
     };
 }
 
-// API Endpoints
+// --- API ENDPOINTS ---
 
-// Health check
+// Simple health check to say hello
 app.get('/', (req, res) => {
     res.json({
         status: 'running',
-        message: 'Mass Balance Calculator API',
+        message: 'Mass Balance Calculator API is up and running!',
         version: '1.0.0'
     });
 });
 
-// POST /api/calculate
+// The main event: Calculate Mass Balance
 app.post('/api/calculate', (req, res) => {
     try {
-        console.log('📊 Calculating mass balance...');
+        console.log('📊 Crunching the numbers...');
         const calculation = calculateMassBalance(req.body);
-        console.log('✓ Calculation complete:', calculation.recommended_method, calculation.recommended_value + '%');
+        console.log('✓ Done! Recommended:', calculation.recommended_method, calculation.recommended_value + '%');
         res.json(calculation);
     } catch (error) {
         console.error('❌ Calculation error:', error);
@@ -191,7 +199,7 @@ app.post('/api/calculate', (req, res) => {
     }
 });
 
-// POST /api/save
+// Save the results for posterity
 app.post('/api/save', (req, res) => {
     const { inputs, results } = req.body;
 
@@ -230,7 +238,7 @@ app.post('/api/save', (req, res) => {
                 console.error('❌ Save error:', err);
                 res.status(500).json({ error: err.message });
             } else {
-                console.log('✓ Calculation saved:', results.calculation_id);
+                console.log('✓ Saved calculation safely:', results.calculation_id);
                 res.json({ success: true, calculation_id: results.calculation_id });
             }
         }

@@ -3,11 +3,14 @@ import Calculator from './components/Calculator';
 import History from './components/History';
 import { FileText, History as HistoryIcon } from 'lucide-react';
 
+// This is our main layout shell. It handles the navigation between the Calculator and History tabs.
 function App() {
+  // Simple state to toggle between the two main views
   const [activeTab, setActiveTab] = useState('calculator');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* The top navigation bar */}
       <nav className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -19,12 +22,13 @@ function App() {
                 Pharmaceutical Forced Degradation Analysis
               </p>
             </div>
+            {/* Tab Switchers */}
             <div className="flex gap-4">
               <button
                 onClick={() => setActiveTab('calculator')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === 'calculator'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
               >
                 <FileText size={20} />
@@ -33,8 +37,8 @@ function App() {
               <button
                 onClick={() => setActiveTab('history')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === 'history'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
               >
                 <HistoryIcon size={20} />
@@ -45,10 +49,12 @@ function App() {
         </div>
       </nav>
 
+      {/* Main Content Area - Renders the active component */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === 'calculator' ? <Calculator /> : <History />}
       </main>
 
+      {/* Nice little footer to wrap things up */}
       <footer className="bg-white shadow-lg mt-12">
         <div className="max-w-7xl mx-auto px-4 py-4 text-center text-sm text-gray-600">
           <p>Mass Balance Calculator v1.0 | ICH Q1A(R2) Compliant</p>
