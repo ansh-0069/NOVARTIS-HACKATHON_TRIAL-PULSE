@@ -1,4 +1,3 @@
-// Let's bring in the tools we need
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -8,21 +7,20 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Set up some middleware to handle our requests kindly
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
 // Database setup
-// We're using SQLite here for simplicity and portability.
 const db = new sqlite3.Database('./mass_balance.db', (err) => {
     if (err) {
         console.error('❌ Database error:', err);
     } else {
-        console.log('✓ Successfully connected to our SQLite database');
+        console.log('✓ Connected to SQLite database');
     }
 });
 
-// Let's create our tables if they don't already exist.
+// Create tables with CIMB and LK-IMB statistical fields
 db.run(`
   CREATE TABLE IF NOT EXISTS calculations (
     id TEXT PRIMARY KEY,
@@ -41,8 +39,16 @@ db.run(`
     amb REAL,
     rmb REAL,
     lk_imb REAL,
+    lk_imb_lower_ci REAL,
+    lk_imb_upper_ci REAL,
+    lk_imb_risk_level TEXT,
+    cimb REAL,
+    cimb_lower_ci REAL,
+    cimb_upper_ci REAL,
+    cimb_risk_level TEXT,
     lambda REAL,
     omega REAL,
+    stoichiometric_factor REAL,
     recommended_method TEXT,
     recommended_value REAL,
     confidence_index REAL,
@@ -53,14 +59,44 @@ db.run(`
   )
 `, (err) => {
     if (err) {
-        console.error('❌ Oops, error creating table:', err);
+        console.error('❌ Error creating table:', err);
     } else {
-        console.log('✓ Database table is ready for action');
+        console.log('✓ Database table ready');
     }
 });
 
-// --- THE CALCULATION ENGINE ---
-// This is where the magic happens. We take the inputs and run the physics.
+// Statistical helper functions for CIMB
+function calculateStandardDeviation(values) {
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    return Math.sqrt(variance);
+}
+
+function getTDistributionValue(degreesOfFreedom, alpha = 0.05) {
+    // Simplified t-distribution critical values for 95% CI (two-tailed)
+    const tTable = {
+        1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571,
+        6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
+        15: 2.131, 20: 2.086, 30: 2.042, 60: 2.000, 120: 1.980
+    };
+
+    if (degreesOfFreedom in tTable) {
+        return tTable[degreesOfFreedom];
+    } else if (degreesOfFreedom > 120) {
+        return 1.96; // Z-value for large samples
+    } else {
+        // Interpolate
+        const keys = Object.keys(tTable).map(Number).sort((a, b) => a - b);
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (degreesOfFreedom >= keys[i] && degreesOfFreedom <= keys[i + 1]) {
+                return tTable[keys[i]]; // Conservative estimate
+            }
+        }
+        return 2.0; // Default conservative value
+    }
+}
+
+// Calculation Engine
 function calculateMassBalance(data) {
     const {
         initial_api,
@@ -69,87 +105,162 @@ function calculateMassBalance(data) {
         stressed_degradants,
         degradant_mw,
         parent_mw,
-        rrf
+        rrf,
+        stress_type = 'Unknown'
     } = data;
 
-    // First, let's do the basic arithmetic
+    // Basic calculations
     const delta_api = initial_api - stressed_api;
     const delta_degradants = stressed_degradants - initial_degradants;
     const degradation_level = (delta_api / initial_api) * 100;
 
-    // SMB - Simple Mass Balance (Just adding them up)
+    // SMB - Simple Mass Balance
     const smb = stressed_api + stressed_degradants;
 
-    // AMB - Absolute Mass Balance (Comparing totals)
+    // AMB - Absolute Mass Balance
     const amb = ((stressed_api + stressed_degradants) / (initial_api + initial_degradants)) * 100;
 
-    // RMB - Relative Mass Balance (Checking what was lost vs what appeared)
+    // RMB - Relative Mass Balance
     const rmb = delta_api === 0 ? null : (delta_degradants / delta_api) * 100;
 
-    // Now for the heavy lifting: Correction factors
-    // Lambda adjusts for Response Factors (how the detector sees it)
+    // Correction factors
     const lambda = rrf ? 1 / rrf : 1.0;
-    // Omega adjusts for Molecular Weight changes (fragmentation)
     const omega = (degradant_mw && parent_mw) ? parent_mw / degradant_mw : 1.0;
 
-    // Applying the corrections to the degradants
-    const corrected_degradants = stressed_degradants * lambda * omega;
-
-    // LK-IMB - This gives us the final corrected mass balance
-    const lk_imb = ((stressed_api + corrected_degradants) / initial_api) * 100;
-
-    // Intelligence: Deciding which method is best based on the data
-    let recommended_method;
-    if (delta_api < 2) {
-        recommended_method = 'AMB'; // Too little change, keep it simple
-    } else if (delta_api >= 5 && delta_api <= 20) {
-        recommended_method = 'RMB'; // Good range for relative comparison
-    } else {
-        recommended_method = 'LK-IMB'; // Lots of change, trust the corrected model
+    // Stoichiometric pathway factor based on stress type
+    let stoichiometric_factor = 1.0;
+    if (degradant_mw && parent_mw) {
+        switch (stress_type.toLowerCase()) {
+            case 'acid':
+            case 'base':
+                // Hydrolysis: typically adds H2O (18 g/mol)
+                stoichiometric_factor = (parent_mw + 18) / degradant_mw;
+                break;
+            case 'oxidative':
+                // Oxidation: typically adds O (16 g/mol)
+                stoichiometric_factor = (parent_mw + 16) / degradant_mw;
+                break;
+            case 'photolytic':
+            case 'thermal':
+                // Fragmentation: use omega as is
+                stoichiometric_factor = omega;
+                break;
+            default:
+                stoichiometric_factor = omega;
+        }
     }
 
-    // Pick the winner
+    // LK-IMB - Lukulay-Körner Integrated Mass Balance with Confidence Intervals
+    const corrected_degradants_lk = stressed_degradants * lambda * omega;
+    const lk_imb_point = ((stressed_api + corrected_degradants_lk) / initial_api) * 100;
+
+    // Calculate uncertainty and confidence intervals for LK-IMB
+    // Assuming typical analytical uncertainty of ±2.5% for HPLC methods
+    const analytical_uncertainty = 2.5; // % RSD
+
+    // Propagate uncertainty through the calculation for LK-IMB
+    const api_variance = Math.pow(stressed_api * analytical_uncertainty / 100, 2);
+    const deg_variance = Math.pow(stressed_degradants * analytical_uncertainty / 100, 2);
+    const lk_combined_variance = api_variance + deg_variance * Math.pow(lambda * omega, 2);
+    const lk_combined_std = Math.sqrt(lk_combined_variance) / initial_api * 100;
+
+    // 95% confidence interval using t-distribution (n=3 replicates typical)
+    const df = 2; // degrees of freedom (n-1 for n=3)
+    const t_critical = getTDistributionValue(df);
+    const lk_margin_of_error = t_critical * lk_combined_std;
+
+    const lk_imb_lower_ci = lk_imb_point - lk_margin_of_error;
+    const lk_imb_upper_ci = lk_imb_point + lk_margin_of_error;
+
+    // Risk-based threshold assessment for LK-IMB
+    let lk_imb_risk_level;
+    if (lk_imb_point >= 98 && lk_imb_point <= 102) {
+        lk_imb_risk_level = 'LOW';
+    } else if ((lk_imb_point >= 95 && lk_imb_point < 98) || (lk_imb_point > 102 && lk_imb_point <= 105)) {
+        lk_imb_risk_level = 'MODERATE';
+    } else {
+        lk_imb_risk_level = 'HIGH';
+    }
+
+    // CIMB - Corrected Integrated Mass Balance with Confidence Intervals
+    const corrected_degradants_cimb = stressed_degradants * lambda * stoichiometric_factor;
+    const cimb_point = ((stressed_api + corrected_degradants_cimb) / initial_api) * 100;
+
+    // Propagate uncertainty through the calculation for CIMB
+    const cimb_combined_variance = api_variance + deg_variance * Math.pow(lambda * stoichiometric_factor, 2);
+    const cimb_combined_std = Math.sqrt(cimb_combined_variance) / initial_api * 100;
+
+    const cimb_margin_of_error = t_critical * cimb_combined_std;
+
+    const cimb_lower_ci = cimb_point - cimb_margin_of_error;
+    const cimb_upper_ci = cimb_point + cimb_margin_of_error;
+
+    // Risk-based threshold assessment for CIMB
+    let cimb_risk_level;
+    if (cimb_point >= 98 && cimb_point <= 102) {
+        cimb_risk_level = 'LOW';
+    } else if ((cimb_point >= 95 && cimb_point < 98) || (cimb_point > 102 && cimb_point <= 105)) {
+        cimb_risk_level = 'MODERATE';
+    } else {
+        cimb_risk_level = 'HIGH';
+    }
+
+    // Determine recommended method
+    let recommended_method;
+    if (delta_api < 2) {
+        recommended_method = 'AMB';
+    } else if (delta_api >= 5 && delta_api <= 20) {
+        recommended_method = 'RMB';
+    } else if (degradation_level > 20 || cimb_risk_level === 'HIGH') {
+        recommended_method = 'CIMB'; // Use CIMB for high degradation or high risk
+    } else {
+        recommended_method = 'LK-IMB';
+    }
+
+    // Get recommended value
     const recommended_value =
         recommended_method === 'AMB' ? amb :
             recommended_method === 'RMB' ? rmb :
-                lk_imb;
+                recommended_method === 'CIMB' ? cimb_point :
+                    lk_imb;
 
-    // How confident are we? 
-    // We assume some analytical uncertainty and degrade confidence if results are weird.
-    const analytical_uncertainty = 2.5;
+    // Calculate confidence index
     const confidence_index = Math.abs(100 - amb) > 0
         ? 100 * (1 - analytical_uncertainty / Math.abs(100 - amb))
         : 95;
 
-    // Pass/Fail check
+    // Determine status
     let status;
     if (recommended_value >= 95 && recommended_value <= 105) {
         status = 'PASS';
     } else if (recommended_value >= 90) {
         status = 'ALERT';
     } else {
-        status = 'OOS'; // Out Of Specification
+        status = 'OOS';
     }
 
-    // Now let's generate a helpful message for the analyst
+    // Generate diagnostic message
     let diagnostic_message;
     let rationale;
 
-    if (amb < 95 && lambda === 1.0 && omega === 1.0) {
-        diagnostic_message = '⚠ Hmm, suspected volatile loss detected. Recommend headspace GC-MS analysis.';
-        rationale = 'Low mass balance with no correction factors suggests volatile degradation products escaped.';
+    if (cimb_risk_level === 'HIGH') {
+        diagnostic_message = '⚠ HIGH RISK: Mass balance outside acceptable limits. CIMB method with statistical validation required. Investigate potential analytical issues or undetected degradants.';
+        rationale = `CIMB = ${cimb_point.toFixed(2)}% (95% CI: ${cimb_lower_ci.toFixed(2)}% - ${cimb_upper_ci.toFixed(2)}%). Risk level: ${cimb_risk_level}. Immediate investigation required per ICH Q1A(R2).`;
+    } else if (amb < 95 && lambda === 1.0 && omega === 1.0) {
+        diagnostic_message = '⚠ Suspected volatile loss detected. Recommend headspace GC-MS analysis.';
+        rationale = 'Low mass balance with no correction factors suggests volatile degradation products.';
     } else if (amb < 95 && lambda > 1.2) {
         diagnostic_message = '⚠ UV-silent degradant suspected. Consider CAD or CLND detection.';
         rationale = 'High RRF correction suggests chromophore changes in degradation pathway.';
     } else if (delta_api < 2) {
-        diagnostic_message = '✓ Low degradation level. AMB method is appropriate here.';
+        diagnostic_message = '✓ Low degradation level. AMB method appropriate.';
         rationale = 'Minimal degradation observed. Standard absolute method is sufficient.';
     } else if (degradation_level > 20) {
-        diagnostic_message = '✓ Mass balance acceptable. Stoichiometric corrections applied.';
-        rationale = 'High degradation with fragmentation detected. LK-IMB correction is the way to go.';
+        diagnostic_message = `✓ High degradation detected. CIMB method recommended with ${cimb_risk_level} risk level. Stoichiometric corrections applied (S=${stoichiometric_factor.toFixed(2)}).`;
+        rationale = `CIMB = ${cimb_point.toFixed(2)}% ± ${cimb_margin_of_error.toFixed(2)}% (95% CI). High degradation with pathway-specific corrections applied.`;
     } else {
         diagnostic_message = '✓ Mass balance acceptable. Continue routine testing per ICH Q1A(R2).';
-        rationale = 'Results look good and within limits. No anomalies detected.';
+        rationale = 'Results within acceptable limits. No anomalies detected.';
     }
 
     return {
@@ -159,11 +270,19 @@ function calculateMassBalance(data) {
             smb: parseFloat(smb.toFixed(2)),
             amb: parseFloat(amb.toFixed(2)),
             rmb: rmb !== null ? parseFloat(rmb.toFixed(2)) : null,
-            lk_imb: parseFloat(lk_imb.toFixed(2))
+            lk_imb: parseFloat(lk_imb_point.toFixed(2)),
+            lk_imb_lower_ci: parseFloat(lk_imb_lower_ci.toFixed(2)),
+            lk_imb_upper_ci: parseFloat(lk_imb_upper_ci.toFixed(2)),
+            lk_imb_risk_level,
+            cimb: parseFloat(cimb_point.toFixed(2)),
+            cimb_lower_ci: parseFloat(cimb_lower_ci.toFixed(2)),
+            cimb_upper_ci: parseFloat(cimb_upper_ci.toFixed(2)),
+            cimb_risk_level
         },
         correction_factors: {
             lambda: parseFloat(lambda.toFixed(2)),
-            omega: parseFloat(omega.toFixed(2))
+            omega: parseFloat(omega.toFixed(2)),
+            stoichiometric_factor: parseFloat(stoichiometric_factor.toFixed(2))
         },
         recommended_method,
         recommended_value: parseFloat(recommended_value.toFixed(2)),
@@ -175,23 +294,25 @@ function calculateMassBalance(data) {
     };
 }
 
-// --- API ENDPOINTS ---
+// API Endpoints
 
-// Simple health check to say hello
+// Health check
 app.get('/', (req, res) => {
     res.json({
         status: 'running',
-        message: 'Mass Balance Calculator API is up and running!',
-        version: '1.0.0'
+        message: 'Mass Balance Calculator API - Enhanced with CIMB',
+        version: '2.0.0',
+        methods: ['SMB', 'AMB', 'RMB', 'LK-IMB', 'CIMB']
     });
 });
 
-// The main event: Calculate Mass Balance
+// POST /api/calculate
 app.post('/api/calculate', (req, res) => {
     try {
-        console.log('📊 Crunching the numbers...');
+        console.log('📊 Calculating mass balance with CIMB...');
         const calculation = calculateMassBalance(req.body);
-        console.log('✓ Done! Recommended:', calculation.recommended_method, calculation.recommended_value + '%');
+        console.log('✓ Calculation complete:', calculation.recommended_method, calculation.recommended_value + '%');
+        console.log('  CIMB:', calculation.results.cimb + '%', 'Risk:', calculation.results.cimb_risk_level);
         res.json(calculation);
     } catch (error) {
         console.error('❌ Calculation error:', error);
@@ -199,12 +320,12 @@ app.post('/api/calculate', (req, res) => {
     }
 });
 
-// Save the results for posterity
+// POST /api/save
 app.post('/api/save', (req, res) => {
     const { inputs, results } = req.body;
 
     const stmt = db.prepare(`
-    INSERT INTO calculations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO calculations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
     stmt.run(
@@ -224,8 +345,16 @@ app.post('/api/save', (req, res) => {
         results.results.amb,
         results.results.rmb,
         results.results.lk_imb,
+        results.results.lk_imb_lower_ci,
+        results.results.lk_imb_upper_ci,
+        results.results.lk_imb_risk_level,
+        results.results.cimb,
+        results.results.cimb_lower_ci,
+        results.results.cimb_upper_ci,
+        results.results.cimb_risk_level,
         results.correction_factors.lambda,
         results.correction_factors.omega,
+        results.correction_factors.stoichiometric_factor,
         results.recommended_method,
         results.recommended_value,
         results.confidence_index,
@@ -238,7 +367,7 @@ app.post('/api/save', (req, res) => {
                 console.error('❌ Save error:', err);
                 res.status(500).json({ error: err.message });
             } else {
-                console.log('✓ Saved calculation safely:', results.calculation_id);
+                console.log('✓ Calculation saved:', results.calculation_id);
                 res.json({ success: true, calculation_id: results.calculation_id });
             }
         }
@@ -323,10 +452,18 @@ app.listen(PORT, () => {
     console.log('');
     console.log('═══════════════════════════════════════════════════');
     console.log('   ✓ Backend server running successfully!');
+    console.log('   ✓ Enhanced with CIMB Method');
     console.log('   ✓ URL: http://localhost:' + PORT);
     console.log('   ✓ Database: SQLite (mass_balance.db)');
     console.log('   ✓ Status: Ready to receive requests');
     console.log('═══════════════════════════════════════════════════');
+    console.log('');
+    console.log('Available Methods:');
+    console.log('  • SMB  - Simple Mass Balance');
+    console.log('  • AMB  - Absolute Mass Balance');
+    console.log('  • RMB  - Relative Mass Balance');
+    console.log('  • LK-IMB - Lukulay-Körner Integrated Mass Balance');
+    console.log('  • CIMB - Corrected Integrated Mass Balance (NEW!)');
     console.log('');
     console.log('Available endpoints:');
     console.log('  GET  / - Health check');
