@@ -26,6 +26,14 @@ Built for pharmaceutical quality control, TRIAL-PULSE demonstrates how digital a
 
 ---
 
+## 🎬 Demo
+
+Watch the complete demonstration of TRIAL-PULSE in action:
+
+[**View Project Demo**](https://drive.google.com/file/d/1DUwHV2xMkMosHj3Oc-4XkVHJNJX5nsbF/view?usp=sharing)
+
+---
+
 ## 🚀 Key Features
 
 ### 🧮 Advanced Mass Balance Methods
@@ -48,14 +56,15 @@ Built for pharmaceutical quality control, TRIAL-PULSE demonstrates how digital a
 ### 📈 Smart Report Generation
 
 * **PDF Reports** with:
+
   - Executive summary
   - LK-IMB statistical analysis with confidence intervals
   - CIMB statistical analysis with confidence intervals
   - Method comparison charts
   - Risk assessment visualization
   - ICH Q1A(R2) compliance indicators
-
 * **Excel Workbooks** with:
+
   - Interactive data entry sheet
   - Automated calculations engine
   - LK-IMB confidence intervals & risk levels
@@ -174,6 +183,7 @@ npm install
 ```
 
 Required packages:
+
 - express
 - cors
 - body-parser
@@ -188,6 +198,7 @@ npm install
 ```
 
 Required packages:
+
 - react
 - vite
 - axios
@@ -207,17 +218,21 @@ pip install xlsxwriter
 #### Option 1: Run Both Servers Separately
 
 **Terminal 1 - Backend Server:**
+
 ```bash
 cd backend
 npm run dev
 ```
+
 Backend will start on: `http://localhost:5000`
 
 **Terminal 2 - Frontend Server:**
+
 ```bash
 cd frontend
 npm run dev
 ```
+
 Frontend will start on: `http://localhost:5173`
 
 #### Option 2: Generate Excel Report
@@ -225,6 +240,7 @@ Frontend will start on: `http://localhost:5173`
 ```bash
 python app.py
 ```
+
 This generates `Mass_Balance_Calculator.xlsx` with sample data.
 
 ### Accessing the Application
@@ -240,21 +256,25 @@ This generates `Mass_Balance_Calculator.xlsx` with sample data.
 ## 🧪 Scientific Calculation Methods
 
 ### 1. Simple Mass Balance (SMB)
+
 ```
 SMB = Stressed API + Stressed Degradants
 ```
 
 ### 2. Absolute Mass Balance (AMB)
+
 ```
 AMB = (Stressed API + Stressed Degradants) / (Initial API + Initial Degradants) × 100
 ```
 
 ### 3. Relative Mass Balance (RMB)
+
 ```
 RMB = (ΔDegradants / ΔAPI) × 100
 ```
 
 ### 4. LK-IMB (Lukulay-Körner Integrated Mass Balance)
+
 ```
 LK-IMB = (Stressed API + Corrected Degradants) / Initial API × 100
 
@@ -269,6 +289,7 @@ Statistical Analysis:
 ```
 
 ### 5. CIMB (Corrected Integrated Mass Balance)
+
 ```
 CIMB = (Stressed API + Stoichiometrically Corrected Degradants) / Initial API × 100
 
@@ -288,18 +309,18 @@ Statistical Analysis:
 
 ## 📥 Input Parameters
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| **Initial API Assay (%)** | Starting purity before stress | 98.00 |
-| **Stressed API Assay (%)** | Purity after stress testing | 82.50 |
-| **Initial Degradants (%)** | Baseline impurity level | 0.50 |
-| **Stressed Degradants (%)** | Impurity after stress | 4.90 |
-| **Parent MW (g/mol)** | Molecular weight of API | 500.00 |
-| **Degradant MW (g/mol)** | Molecular weight of degradant | 250.00 |
-| **RRF** | Relative Response Factor | 0.80 |
-| **Stress Condition** | Type of stress applied | Base, Acid, Oxidative, Thermal, Photolytic |
-| **Sample ID** | Unique sample identifier | VAL-2026-001 |
-| **Analyst Name** | Person performing analysis | A. Singla |
+| Parameter                         | Description                   | Example                                    |
+| --------------------------------- | ----------------------------- | ------------------------------------------ |
+| **Initial API Assay (%)**   | Starting purity before stress | 98.00                                      |
+| **Stressed API Assay (%)**  | Purity after stress testing   | 82.50                                      |
+| **Initial Degradants (%)**  | Baseline impurity level       | 0.50                                       |
+| **Stressed Degradants (%)** | Impurity after stress         | 4.90                                       |
+| **Parent MW (g/mol)**       | Molecular weight of API       | 500.00                                     |
+| **Degradant MW (g/mol)**    | Molecular weight of degradant | 250.00                                     |
+| **RRF**                     | Relative Response Factor      | 0.80                                       |
+| **Stress Condition**        | Type of stress applied        | Base, Acid, Oxidative, Thermal, Photolytic |
+| **Sample ID**               | Unique sample identifier      | VAL-2026-001                               |
+| **Analyst Name**            | Person performing analysis    | A. Singla                                  |
 
 ---
 
@@ -334,7 +355,7 @@ Statistical Analysis:
 
 1. **Data Entry**: Input form with instructions
 2. **Calculations**: Hidden engine with all formulas
-3. **Diagnostic Report**: 
+3. **Diagnostic Report**:
    - All method results
    - LK-IMB 95% CI with risk level
    - CIMB 95% CI with risk level
@@ -347,6 +368,7 @@ Statistical Analysis:
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **React** - UI framework
 - **Vite** - Build tool and dev server
 - **Axios** - HTTP client
@@ -356,6 +378,7 @@ Statistical Analysis:
 - **Tailwind CSS** - Styling
 
 ### Backend
+
 - **Node.js** - Runtime environment
 - **Express** - Web framework
 - **SQLite3** - Database
@@ -363,6 +386,7 @@ Statistical Analysis:
 - **UUID** - Unique ID generation
 
 ### Scientific Layer
+
 - **Python 3.8+**
 - **XlsxWriter** - Excel file generation
 
@@ -372,20 +396,21 @@ Statistical Analysis:
 
 Use this data to test the application:
 
-| Parameter | Value |
-|-----------|-------|
-| Initial API | 98.00% |
-| Stressed API | 82.50% |
-| Initial Degradants | 0.50% |
-| Stressed Degradants | 4.90% |
-| Parent MW | 500.00 g/mol |
-| Degradant MW | 250.00 g/mol |
-| RRF | 0.80 |
-| Stress Condition | Base |
-| Sample ID | VAL-2026-001 |
-| Analyst Name | A. Singla |
+| Parameter           | Value        |
+| ------------------- | ------------ |
+| Initial API         | 98.00%       |
+| Stressed API        | 82.50%       |
+| Initial Degradants  | 0.50%        |
+| Stressed Degradants | 4.90%        |
+| Parent MW           | 500.00 g/mol |
+| Degradant MW        | 250.00 g/mol |
+| RRF                 | 0.80         |
+| Stress Condition    | Base         |
+| Sample ID           | VAL-2026-001 |
+| Analyst Name        | A. Singla    |
 
 **Expected Results:**
+
 - LK-IMB: ~97.4% (Risk: MODERATE)
 - CIMB: ~98.8% (Risk: LOW)
 - Recommended Method: CIMB
@@ -406,6 +431,7 @@ Use this data to test the application:
 ## 🎯 API Endpoints
 
 ### Calculate Mass Balance
+
 ```
 POST /api/calculate
 Content-Type: application/json
@@ -448,21 +474,25 @@ Response:
 ```
 
 ### Save Calculation
+
 ```
 POST /api/save
 ```
 
 ### Get History
+
 ```
 GET /api/history
 ```
 
 ### Get Specific Calculation
+
 ```
 GET /api/calculation/:id
 ```
 
 ### Delete Calculation
+
 ```
 DELETE /api/calculation/:id
 ```
@@ -498,6 +528,7 @@ DELETE /api/calculation/:id
 ## 🐛 Troubleshooting
 
 ### Backend won't start
+
 ```bash
 # Check if port 5000 is in use
 netstat -ano | findstr :5000
@@ -511,6 +542,7 @@ npm run dev
 ```
 
 ### Frontend won't start
+
 ```bash
 # Clear node_modules and reinstall
 cd frontend
@@ -520,6 +552,7 @@ npm run dev
 ```
 
 ### Database errors
+
 ```bash
 # Delete and recreate database
 cd backend
@@ -529,6 +562,7 @@ npm run dev
 ```
 
 ### Python Excel generation fails
+
 ```bash
 # Reinstall xlsxwriter
 pip uninstall xlsxwriter
@@ -560,7 +594,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👨‍💻 Author
 
-**Anshuman Kumar**
+**Kumar Anshuman**
+
 - Full Stack Development
 - Scientific Computation
 - Pharmaceutical Analytics
