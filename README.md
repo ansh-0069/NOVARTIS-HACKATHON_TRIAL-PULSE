@@ -1,4 +1,4 @@
-# 🧬 TRIAL-PULSE
+# 🧬 Mass Balance Calculator
 
 ### Intelligent Mass Balance & Stability Analysis Platform for Pharmaceutical Quality Monitoring
 
@@ -10,7 +10,7 @@
 
 ## 📌 Overview
 
-**TRIAL-PULSE** is an intelligent pharmaceutical analytics platform designed to automate **mass balance calculations**, improve **drug stability analysis workflows**, and generate **regulatory-ready reports** in real time.
+**Mass Balance Calculator** is an intelligent pharmaceutical analytics platform designed to automate **mass balance calculations**, improve **drug stability analysis workflows**, and generate **regulatory-ready reports** in real time.
 
 The platform eliminates manual spreadsheet dependency by providing a **full-stack digital solution** that integrates:
 
@@ -22,13 +22,13 @@ The platform eliminates manual spreadsheet dependency by providing a **full-stac
 * **Instant PDF & Excel Report Generation**
 * **Persistent Data Storage with History**
 
-Built for pharmaceutical quality control, TRIAL-PULSE demonstrates how digital automation can improve **pharma QC**, **stability studies**, and **regulatory documentation workflows**.
+Built for pharmaceutical quality control, Mass Balance Calculator demonstrates how digital automation can improve **pharma QC**, **stability studies**, and **regulatory documentation workflows**.
 
 ---
 
 ## 🎬 Demo
 
-Watch the complete demonstration of TRIAL-PULSE in action:
+Watch the complete demonstration of Mass Balance Calculator in action:
 
 [**View Project Demo**](https://drive.google.com/file/d/1DUwHV2xMkMosHj3Oc-4XkVHJNJX5nsbF/view?usp=sharing)
 
@@ -129,7 +129,7 @@ Watch the complete demonstration of TRIAL-PULSE in action:
 ## 📂 Project Structure
 
 ```
-TRIAL-PULSE/
+Mass-Balance-Calculator/
 │
 ├── backend/
 │   ├── server.js                    # Express API server
@@ -172,7 +172,7 @@ Ensure you have the following installed:
 
 ```bash
 git clone <repository-url>
-cd TRIAL-PULSE
+cd Mass-Balance-Calculator
 ```
 
 #### 2. Install Backend Dependencies
@@ -612,7 +612,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 💡 Hackathon Vision Statement
 
-TRIAL-PULSE aims to accelerate pharmaceutical quality analytics by combining scientific rigor with digital automation — enabling faster, more reliable, and scalable stability intelligence for modern drug development pipelines.
+Mass Balance Calculator aims to accelerate pharmaceutical quality analytics by combining scientific rigor with digital automation — enabling faster, more reliable, and scalable stability intelligence for modern drug development pipelines.
 
 **Built with ❤️ for the pharmaceutical community**
 
