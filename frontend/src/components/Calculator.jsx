@@ -24,7 +24,6 @@ const Tooltip = ({ children, content }) => {
       </div>
       {show && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1 }}
           className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded-lg shadow-xl border border-slate-700 whitespace-nowrap"
         >
@@ -254,8 +253,8 @@ function Calculator() {
           {/* Status Indicator */}
           {results && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className="mt-4 flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-lg w-fit"
             >
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -283,7 +282,7 @@ function Calculator() {
           {inputFields.map((field, index) => (
             <motion.div
               key={field.name}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: index * 0.05 }}
               className="group"
@@ -318,7 +317,7 @@ function Calculator() {
 
           {/* Stress Type Dropdown */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
             className="group"
@@ -349,7 +348,7 @@ function Calculator() {
 
           {/* Sample ID */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
@@ -370,7 +369,7 @@ function Calculator() {
 
           {/* Analyst Name */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45 }}
           >
@@ -427,8 +426,8 @@ function Calculator() {
           {results && (
             <>
               <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 onClick={handleSave}
                 className={`px-6 py-4 rounded-xl font-semibold transition-all flex items-center gap-2 ${saved
                   ? 'bg-green-500/20 text-green-400 border border-green-500/50'
@@ -440,8 +439,8 @@ function Calculator() {
               </motion.button>
 
               <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 onClick={handleDownloadExcel}
                 className="px-6 py-4 rounded-xl bg-green-600 hover:bg-green-500 text-white border border-green-500 font-semibold transition-all flex items-center gap-2 shadow-lg shadow-green-500/25 hover:shadow-green-500/40"
               >
@@ -465,7 +464,7 @@ function Calculator() {
         {/* Info Banner */}
         {!autoCalculate && !results && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
             className="mt-6 flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl"

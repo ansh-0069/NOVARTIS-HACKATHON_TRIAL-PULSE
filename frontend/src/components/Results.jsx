@@ -784,8 +784,8 @@ function Results({ results, inputs }) {
     >
       {/* Executive Summary Banner */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
       >
         <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${getStatusConfig(recommended_value).gradient} blur-3xl`} />
@@ -819,8 +819,8 @@ function Results({ results, inputs }) {
                 <option value="excel">Excel Report</option>
               </select>
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1 }}
+                whileTap={{ scale: 15 }}
                 onClick={handleExport}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/25"
               >
@@ -833,7 +833,7 @@ function Results({ results, inputs }) {
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 }}
               className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
@@ -847,7 +847,7 @@ function Results({ results, inputs }) {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.15 }}
               className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
@@ -863,7 +863,7 @@ function Results({ results, inputs }) {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
@@ -877,7 +877,7 @@ function Results({ results, inputs }) {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.25 }}
               className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
@@ -904,8 +904,8 @@ function Results({ results, inputs }) {
           return (
             <motion.div
               key={key}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: index * 0.05 }}
               className={`relative overflow-hidden rounded-xl border backdrop-blur-sm ${isRecommended
                 ? 'border-blue-500/50 bg-blue-500/10'
@@ -958,8 +958,8 @@ function Results({ results, inputs }) {
       {/* Statistical Analysis Sections */}
       {mb_results.lk_imb && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="relative overflow-hidden rounded-2xl border border-green-500/20 bg-gradient-to-br from-green-900/20 to-slate-900/50 backdrop-blur-xl p-8"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/10 to-transparent blur-3xl" />
@@ -1007,8 +1007,8 @@ function Results({ results, inputs }) {
 
       {mb_results.cimb && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-900/20 to-slate-900/50 backdrop-blur-xl p-8"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-transparent blur-3xl" />
@@ -1056,8 +1056,8 @@ function Results({ results, inputs }) {
 
       {/* Interactive Visualizations */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
       >
         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
@@ -1128,8 +1128,8 @@ function Results({ results, inputs }) {
 
       {/* Correction Factors */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
       >
         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
@@ -1145,7 +1145,7 @@ function Results({ results, inputs }) {
           ].map((factor, index) => (
             <motion.div
               key={factor.label}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
               className={`p-6 bg-${factor.color}-500/5 rounded-xl border border-${factor.color}-500/20 text-center`}
@@ -1160,8 +1160,8 @@ function Results({ results, inputs }) {
 
       {/* Diagnostic Panel */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
       >
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">

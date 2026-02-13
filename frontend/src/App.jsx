@@ -91,11 +91,7 @@ function App() {
                       transition={{ duration: 0.2 }}
                     >
                       {activeTab === tab.id && (
-                        <motion.div
-                          layoutId="activeTab"
-                          className="absolute inset-0 bg-gradient-to-r from-blue-600 to-violet-600 rounded-lg"
-                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-violet-600 rounded-lg" />
                       )}
                       <Icon size={18} className="relative z-10" />
                       <span className="relative z-10">{tab.label}</span>
