@@ -56,14 +56,15 @@ Watch the complete demonstration of Mass Balance Calculator in action:
 ### 📈 Smart Report Generation
 
 * **Professional 4-Page PDF Reports** (jsPDF) with:
+
   - **Page 1**: Professional cover page with status badge and branding
   - **Page 2**: Executive summary with key findings, LK-IMB statistical analysis with visual confidence interval scale, and risk assessment
   - **Page 3**: CIMB statistical analysis with visual confidence interval representation and detailed risk assessment
   - **Page 4**: Complete method comparison table, correction factors display, diagnostic assessment, and ICH Q1A(R2) compliance statement
   - Color-coded risk levels with visual indicators
   - Timestamp-based file naming: `Mass_Balance_Report_YYYYMMDD_Method.pdf`
-
 * **Comprehensive Excel Workbooks** (XlsxWriter) with:
+
   - **6-Sheet Full Report**: Calculation Input, Mass Balance Results, Detailed Analysis, Calculation History, Analytics Dashboard, Reference Guide
   - **History-Only Export**: Single-sheet calculation history table for quick data review
   - Modern blue header styling (#3b82f6)
@@ -219,6 +220,7 @@ pip install -r requirements.txt
 ```
 
 Required Python packages:
+
 - xlsxwriter
 - sqlite3 (built-in)
 
@@ -354,14 +356,15 @@ Statistical Analysis:
 ### PDF Report Contents (4-Page Professional Format)
 
 1. **Page 1 - Cover Page**:
+
    - Professional pharmaceutical report design
    - MB badge with blue circular branding
    - Report title and ICH Q1A(R2) compliance label
    - Color-coded status badge (PASS/ALERT/FAIL)
    - Report generation date and time
    - Version: Dual-Method Mass Balance Calculator v2.0
-
 2. **Page 2 - Executive Summary & LK-IMB Analysis**:
+
    - Analysis overview with conclusion
    - Key findings (degradation level, correction factors, CIMB results, risk level)
    - Volatile loss and UV-silent degradant detection
@@ -370,15 +373,15 @@ Statistical Analysis:
    - Point estimate with error bars
    - 3-tier risk assessment (LOW/MODERATE/HIGH) with color coding
    - Current LK-IMB risk level banner
-
 3. **Page 3 - CIMB Statistical Analysis**:
+
    - CIMB confidence interval visualization with scale (85-115%)
    - Point estimate (blue) with 95% CI error bars
    - Acceptable range overlay (95-105%)
    - Detailed risk assessment matrix
    - Current CIMB risk level status banner
-
 4. **Page 4 - Method Comparison & Results**:
+
    - Complete results table for all 5 methods (SMB, AMB, RMB, LK-IMB, CIMB)
    - Formula display for each method
    - Status indicators (PASS/ALERT/FAIL)
@@ -392,38 +395,39 @@ Statistical Analysis:
 ### Excel Workbook Sheets (6-Sheet Full Report)
 
 1. **Calculation Input**:
+
    - User-friendly input form with labeled fields
    - Sample metadata (Sample ID, Analyst, Date, Stress Type)
    - API and degradant measurements (initial & stressed)
    - Correction factor inputs (Parent MW, Degradant MW, RRF)
    - Modern blue headers (#3b82f6)
-
 2. **Mass Balance Results**:
+
    - All 5 method results (SMB, AMB, RMB, LK-IMB, CIMB)
    - LK-IMB with 95% confidence interval (Lower CI, Point Estimate, Upper CI)
    - CIMB with 95% confidence interval (Lower CI, Point Estimate, Upper CI)
    - Risk levels for both LK-IMB and CIMB (LOW/MODERATE/HIGH)
    - Color-coded risk assessment (green/yellow/red)
    - Calculated correction factors (Lambda, Omega, Stoichiometric)
-
 3. **Detailed Analysis**:
+
    - Method-by-method breakdown
    - Formula explanations
    - Statistical significance indicators
    - Recommended method with justification
-
 4. **Calculation History**:
+
    - Timestamped calculation log
    - Sample ID tracking
    - Method results comparison over time
    - Risk level trends
-
 5. **Analytics Dashboard**:
+
    - Key performance indicators (KPIs)
    - Method usage statistics
    - Risk distribution summary
-
 6. **Reference Guide**:
+
    - Method descriptions and formulas
    - Correction factor definitions (Lambda, Omega, S)
    - Risk level criteria and acceptance ranges
@@ -645,18 +649,6 @@ pip install xlsxwriter
 # Run script
 python app.py
 ```
-
----
-
-## 🤝 Contributing
-
-Contributions, feature requests, and improvements are welcome!
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ---
 
