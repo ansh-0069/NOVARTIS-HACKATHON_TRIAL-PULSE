@@ -776,16 +776,36 @@ function Results({ results, inputs }) {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        duration: 0.6
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+    }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
       className="space-y-6"
     >
       {/* Executive Summary Banner */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        variants={itemVariants}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
       >
         <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${getStatusConfig(recommended_value).gradient} blur-3xl`} />
@@ -819,8 +839,8 @@ function Results({ results, inputs }) {
                 <option value="excel">Excel Report</option>
               </select>
               <motion.button
-                whileHover={{ scale: 1 }}
-                whileTap={{ scale: 15 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleExport}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/25"
               >
@@ -832,26 +852,16 @@ function Results({ results, inputs }) {
 
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
-            >
+            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <Target size={16} className="text-blue-400" />
                 <span className="text-xs text-slate-400 uppercase tracking-wider">Recommended</span>
               </div>
               <div className="text-2xl font-bold text-white mb-1">{recommended_method}</div>
               <div className="text-sm text-slate-400">Method</div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 }}
-              className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
-            >
+            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <BarChart3 size={16} className="text-violet-400" />
                 <span className="text-xs text-slate-400 uppercase tracking-wider">Final Result</span>
@@ -860,342 +870,359 @@ function Results({ results, inputs }) {
               <div className={`text-sm ${getStatusConfig(recommended_value).color} font-semibold`}>
                 {getStatusConfig(recommended_value).label}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
-            >
+            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <Shield size={16} className="text-green-400" />
                 <span className="text-xs text-slate-400 uppercase tracking-wider">Confidence</span>
               </div>
               <div className="text-2xl font-bold text-white mb-1">{confidence_index}%</div>
               <div className="text-sm text-slate-400">Statistical</div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.25 }}
-              className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50"
-            >
+            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp size={16} className="text-orange-400" />
                 <span className="text-xs text-slate-400 uppercase tracking-wider">Degradation</span>
               </div>
               <div className="text-2xl font-bold text-white mb-1">{degradation_level}%</div>
               <div className="text-sm text-slate-400">Level</div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Method Results Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {Object.entries(mb_results).filter(([key]) =>
-          ['smb', 'amb', 'rmb', 'lk_imb', 'cimb'].includes(key)
-        ).map(([key, value], index) => {
-          const isRecommended = key === recommended_method.toLowerCase().replace('-', '_');
-          const config = getStatusConfig(value || 0);
+      {/* Navigation Tabs */}
+      <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2">
+        {['overview', 'methods', 'diagnostics'].map((view) => (
+          <button
+            key={view}
+            onClick={() => setActiveView(view)}
+            className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeView === view
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 ring-2 ring-blue-400/20'
+              : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-300 border border-slate-700/50'
+              }`}
+          >
+            {view === 'overview' && <Activity size={18} />}
+            {view === 'methods' && <BarChart3 size={18} />}
+            {view === 'diagnostics' && <FileText size={18} />}
+            {view.charAt(0).toUpperCase() + view.slice(1)}
+          </button>
+        ))}
+      </motion.div>
 
-          return (
+      {/* Content Area */}
+      <motion.div variants={itemVariants} className="min-h-[400px]">
+        {activeView === 'overview' && (
+          <div className="space-y-6">
+            {/* Method Results Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {Object.entries(mb_results).filter(([key]) =>
+                ['smb', 'amb', 'rmb', 'lk_imb', 'cimb'].includes(key)
+              ).map(([key, value]) => {
+                const isRecommended = key === recommended_method.toLowerCase().replace('-', '_');
+                const config = getStatusConfig(value || 0);
+
+                return (
+                  <div
+                    key={key}
+                    className={`relative overflow-hidden rounded-xl border backdrop-blur-sm ${isRecommended
+                      ? 'border-blue-500/50 bg-blue-500/10'
+                      : 'border-slate-800/50 bg-slate-900/50'
+                      }`}
+                  >
+                    {isRecommended && (
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-violet-500" />
+                    )}
+
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-slate-300">
+                          {key.toUpperCase().replace('_', '-')}
+                        </h3>
+                        {isRecommended && (
+                          <div className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
+                            SELECTED
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={`text-3xl font-bold mb-2 ${value === null ? 'text-slate-600' : config.color}`}>
+                        {value === null ? 'N/A' : `${value}%`}
+                      </div>
+
+                      {/* Confidence Interval Bar for LK-IMB and CIMB */}
+                      {(key === 'lk_imb' || key === 'cimb') && value !== null && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs text-slate-500 mb-1">
+                            <span>{key === 'lk_imb' ? mb_results.lk_imb_lower_ci : mb_results.cimb_lower_ci}%</span>
+                            <span>{key === 'lk_imb' ? mb_results.lk_imb_upper_ci : mb_results.cimb_upper_ci}%</span>
+                          </div>
+                          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${key === 'lk_imb' ? 'bg-green-500' : 'bg-cyan-500'}`}
+                              style={{ width: '100%' }}
+                            />
+                          </div>
+                          <div className="text-xs text-slate-500 mt-1 text-center">95% CI</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Statistical Analysis Sections */}
+            {
+              mb_results.lk_imb && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="relative overflow-hidden rounded-2xl border border-green-500/20 bg-gradient-to-br from-green-900/20 to-slate-900/50 backdrop-blur-xl p-8"
+                >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/10 to-transparent blur-3xl" />
+
+                  <div className="relative">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                        <Activity className="text-green-400" size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">LK-IMB Statistical Analysis</h3>
+                        <p className="text-sm text-slate-400">Lukulay-Körner Integrated Mass Balance with 95% CI</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                        <div className="text-sm text-slate-400 mb-2">Lower CI (95%)</div>
+                        <div className="text-2xl font-bold text-green-400">{mb_results.lk_imb_lower_ci}%</div>
+                      </div>
+                      <div className="p-5 bg-green-500/10 rounded-xl border border-green-500/30 text-center ring-2 ring-green-500/20">
+                        <div className="text-sm text-slate-400 mb-2">Point Estimate</div>
+                        <div className="text-3xl font-bold text-green-400">{mb_results.lk_imb}%</div>
+                      </div>
+                      <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                        <div className="text-sm text-slate-400 mb-2">Upper CI (95%)</div>
+                        <div className="text-2xl font-bold text-green-400">{mb_results.lk_imb_upper_ci}%</div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-slate-300">Risk Assessment:</span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${mb_results.lk_imb_risk_level === 'LOW' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          mb_results.lk_imb_risk_level === 'MODERATE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                            'bg-red-500/20 text-red-400 border border-red-500/30'
+                          }`}>
+                          {mb_results.lk_imb_risk_level}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            }
+
+            {
+              mb_results.cimb && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-900/20 to-slate-900/50 backdrop-blur-xl p-8"
+                >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-transparent blur-3xl" />
+
+                  <div className="relative">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                        <Zap className="text-cyan-400" size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">CIMB Statistical Analysis</h3>
+                        <p className="text-sm text-slate-400">Corrected Integrated Mass Balance with Pathway Factors</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                        <div className="text-sm text-slate-400 mb-2">Lower CI (95%)</div>
+                        <div className="text-2xl font-bold text-cyan-400">{mb_results.cimb_lower_ci}%</div>
+                      </div>
+                      <div className="p-5 bg-cyan-500/10 rounded-xl border border-cyan-500/30 text-center ring-2 ring-cyan-500/20">
+                        <div className="text-sm text-slate-400 mb-2">Point Estimate</div>
+                        <div className="text-3xl font-bold text-cyan-400">{mb_results.cimb}%</div>
+                      </div>
+                      <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                        <div className="text-sm text-slate-400 mb-2">Upper CI (95%)</div>
+                        <div className="text-2xl font-bold text-cyan-400">{mb_results.cimb_upper_ci}%</div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-slate-300">Risk Assessment:</span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${mb_results.cimb_risk_level === 'LOW' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          mb_results.cimb_risk_level === 'MODERATE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                            'bg-red-500/20 text-red-400 border border-red-500/30'
+                          }`}>
+                          {mb_results.cimb_risk_level}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            }
+
+            {/* Interactive Visualizations */}
             <motion.div
-              key={key}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.05 }}
-              className={`relative overflow-hidden rounded-xl border backdrop-blur-sm ${isRecommended
-                ? 'border-blue-500/50 bg-blue-500/10'
-                : 'border-slate-800/50 bg-slate-900/50'
-                }`}
+              className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
             >
-              {isRecommended && (
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-violet-500" />
-              )}
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <BarChart3 className="text-blue-400" size={20} />
+                Method Comparison Analysis
+              </h3>
 
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-slate-300">
-                    {key.toUpperCase().replace('_', '-')}
-                  </h3>
-                  {isRecommended && (
-                    <div className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
-                      SELECTED
-                    </div>
-                  )}
-                </div>
-
-                <div className={`text-3xl font-bold mb-2 ${value === null ? 'text-slate-600' : config.color
-                  }`}>
-                  {value === null ? 'N/A' : `${value}%`}
-                </div>
-
-                {/* Confidence Interval Bar for LK-IMB and CIMB */}
-                {(key === 'lk_imb' || key === 'cimb') && value !== null && (
-                  <div className="mt-3">
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
-                      <span>{key === 'lk_imb' ? mb_results.lk_imb_lower_ci : mb_results.cimb_lower_ci}%</span>
-                      <span>{key === 'lk_imb' ? mb_results.lk_imb_upper_ci : mb_results.cimb_upper_ci}%</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${key === 'lk_imb' ? 'bg-green-500' : 'bg-cyan-500'}`}
-                        style={{ width: '100%' }}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Bar Chart with CI */}
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-400 mb-4">Mass Balance Results</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ComposedChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                      <XAxis
+                        dataKey="method"
+                        stroke="#94a3b8"
+                        tick={{ fill: '#94a3b8', fontSize: 12 }}
                       />
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1 text-center">95% CI</div>
+                      <YAxis
+                        domain={[80, 110]}
+                        stroke="#94a3b8"
+                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                        label={{ value: 'Mass Balance (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <ReferenceLine
+                        y={95}
+                        stroke="#10b981"
+                        strokeDasharray="3 3"
+                        strokeWidth={2}
+                        label={{ value: "95%", position: "right", fill: "#10b981" }}
+                      />
+                      <ReferenceLine
+                        y={105}
+                        stroke="#10b981"
+                        strokeDasharray="3 3"
+                        strokeWidth={2}
+                        label={{ value: "105%", position: "right", fill: "#10b981" }}
+                      />
+                      <Bar dataKey="value" fill="url(#colorValue)" radius={[8, 8, 0, 0]} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Radar Chart */}
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-400 mb-4">Performance Profile</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="#334155" />
+                      <PolarAngleAxis dataKey="metric" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                      <PolarRadiusAxis stroke="#334155" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                      <Radar name="LK-IMB" dataKey="LK-IMB" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
+                      <Radar name="CIMB" dataKey="CIMB" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.3} />
+                      <Legend wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {activeView === 'methods' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-6"
+          >
+            {/* Correction Factors */}
+            <div className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <TrendingUp className="text-violet-400" size={20} />
+                Correction Factors Applied
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { label: 'Lambda (λ)', value: correction_factors.lambda, desc: 'RRF Correction', color: 'blue' },
+                  { label: 'Omega (ω)', value: correction_factors.omega, desc: 'MW Correction', color: 'violet' },
+                  { label: 'Stoichiometric (S)', value: correction_factors.stoichiometric_factor, desc: 'Pathway Factor', color: 'cyan' }
+                ].map((factor, idx) => (
+                  <div key={idx} className="p-6 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                    <div className="text-sm text-slate-400 mb-2">{factor.label}</div>
+                    <div className="text-3xl font-bold text-white mb-1">{factor.value}</div>
+                    <div className="text-xs text-slate-500">{factor.desc}</div>
                   </div>
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Statistical Analysis Sections */}
-      {mb_results.lk_imb && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative overflow-hidden rounded-2xl border border-green-500/20 bg-gradient-to-br from-green-900/20 to-slate-900/50 backdrop-blur-xl p-8"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/10 to-transparent blur-3xl" />
-
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/20">
-                <Activity className="text-green-400" size={24} />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">LK-IMB Statistical Analysis</h3>
-                <p className="text-sm text-slate-400">Lukulay-Körner Integrated Mass Balance with 95% CI</p>
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
-                <div className="text-sm text-slate-400 mb-2">Lower CI (95%)</div>
-                <div className="text-2xl font-bold text-green-400">{mb_results.lk_imb_lower_ci}%</div>
+            {/* Detailed Method Table */}
+            <div className="rounded-2xl border border-slate-800/50 bg-slate-900/50 overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Method</th>
+                    <th className="px-6 py-4">Result</th>
+                    <th className="px-6 py-4">Risk</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {Object.entries(mb_results).filter(([k]) => ['smb', 'amb', 'lk_imb', 'cimb'].includes(k)).map(([k, v]) => (
+                    <tr key={k} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="px-6 py-4 text-white font-medium uppercase">{k.replace('_', '-')}</td>
+                      <td className="px-6 py-4 text-slate-300">{v}%</td>
+                      <td className="px-6 py-4 text-slate-400">{getStatusConfig(v).label}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {activeView === 'diagnostics' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-6"
+          >
+            <div className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <FileText className="text-orange-400" size={20} />
+                Diagnostic Assessment
+              </h3>
+              <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700/50 mb-6">
+                <p className="text-slate-300 leading-relaxed">{diagnostic_message}</p>
               </div>
-              <div className="p-5 bg-green-500/10 rounded-xl border border-green-500/30 text-center ring-2 ring-green-500/20">
-                <div className="text-sm text-slate-400 mb-2">Point Estimate</div>
-                <div className="text-3xl font-bold text-green-400">{mb_results.lk_imb}%</div>
-              </div>
-              <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
-                <div className="text-sm text-slate-400 mb-2">Upper CI (95%)</div>
-                <div className="text-2xl font-bold text-green-400">{mb_results.lk_imb_upper_ci}%</div>
+              <div className="p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                <h4 className="text-sm font-semibold text-blue-400 mb-2">Scientific Rationale</h4>
+                <p className="text-slate-300 text-sm leading-relaxed">{rationale}</p>
               </div>
             </div>
-
-            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-300">Risk Assessment:</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-bold ${mb_results.lk_imb_risk_level === 'LOW' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                  mb_results.lk_imb_risk_level === 'MODERATE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                    'bg-red-500/20 text-red-400 border border-red-500/30'
-                  }`}>
-                  {mb_results.lk_imb_risk_level}
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {mb_results.cimb && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-900/20 to-slate-900/50 backdrop-blur-xl p-8"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-transparent blur-3xl" />
-
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-                <Zap className="text-cyan-400" size={24} />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">CIMB Statistical Analysis</h3>
-                <p className="text-sm text-slate-400">Corrected Integrated Mass Balance with Pathway Factors</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
-                <div className="text-sm text-slate-400 mb-2">Lower CI (95%)</div>
-                <div className="text-2xl font-bold text-cyan-400">{mb_results.cimb_lower_ci}%</div>
-              </div>
-              <div className="p-5 bg-cyan-500/10 rounded-xl border border-cyan-500/30 text-center ring-2 ring-cyan-500/20">
-                <div className="text-sm text-slate-400 mb-2">Point Estimate</div>
-                <div className="text-3xl font-bold text-cyan-400">{mb_results.cimb}%</div>
-              </div>
-              <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
-                <div className="text-sm text-slate-400 mb-2">Upper CI (95%)</div>
-                <div className="text-2xl font-bold text-cyan-400">{mb_results.cimb_upper_ci}%</div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-300">Risk Assessment:</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-bold ${mb_results.cimb_risk_level === 'LOW' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                  mb_results.cimb_risk_level === 'MODERATE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                    'bg-red-500/20 text-red-400 border border-red-500/30'
-                  }`}>
-                  {mb_results.cimb_risk_level}
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Interactive Visualizations */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
-      >
-        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <BarChart3 className="text-blue-400" size={20} />
-          Method Comparison Analysis
-        </h3>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Bar Chart with CI */}
-          <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-4">Mass Balance Results</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <ComposedChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <XAxis
-                  dataKey="method"
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                />
-                <YAxis
-                  domain={[80, 110]}
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                  label={{ value: 'Mass Balance (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine
-                  y={95}
-                  stroke="#10b981"
-                  strokeDasharray="3 3"
-                  strokeWidth={2}
-                  label={{ value: "95%", position: "right", fill: "#10b981" }}
-                />
-                <ReferenceLine
-                  y={105}
-                  stroke="#10b981"
-                  strokeDasharray="3 3"
-                  strokeWidth={2}
-                  label={{ value: "105%", position: "right", fill: "#10b981" }}
-                />
-                <Bar dataKey="value" fill="url(#colorValue)" radius={[8, 8, 0, 0]} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Radar Chart */}
-          <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-4">Performance Profile</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="#334155" />
-                <PolarAngleAxis dataKey="metric" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                <PolarRadiusAxis stroke="#334155" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <Radar name="LK-IMB" dataKey="LK-IMB" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
-                <Radar name="CIMB" dataKey="CIMB" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.3} />
-                <Legend wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Correction Factors */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
-      >
-        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <TrendingUp className="text-violet-400" size={20} />
-          Correction Factors Applied
-        </h3>
-
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Lambda (λ)', value: correction_factors.lambda, desc: 'RRF Correction', color: 'blue' },
-            { label: 'Omega (ω)', value: correction_factors.omega, desc: 'MW Correction', color: 'violet' },
-            { label: 'Stoichiometric (S)', value: correction_factors.stoichiometric_factor, desc: 'Pathway Factor', color: 'cyan' }
-          ].map((factor, index) => (
-            <motion.div
-              key={factor.label}
-              initial={{ opacity: 0, scale: 1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className={`p-6 bg-${factor.color}-500/5 rounded-xl border border-${factor.color}-500/20 text-center`}
-            >
-              <div className={`text-sm text-${factor.color}-400 mb-2`}>{factor.label}</div>
-              <div className={`text-3xl font-bold text-${factor.color}-400 mb-1`}>{factor.value}</div>
-              <div className="text-xs text-slate-500">{factor.desc}</div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Diagnostic Panel */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
-      >
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <FileText className="text-orange-400" size={20} />
-          Diagnostic Assessment
-        </h3>
-
-        <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700/50 mb-4">
-          <p className="text-slate-300 leading-relaxed">{diagnostic_message}</p>
-        </div>
-
-        <div className="p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
-          <h4 className="text-sm font-semibold text-blue-400 mb-2">Scientific Rationale</h4>
-          <p className="text-slate-300 text-sm leading-relaxed">{rationale}</p>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="p-4 bg-slate-800/30 rounded-lg">
-            <div className="text-slate-500 mb-1">Degradation</div>
-            <div className="text-white font-semibold">{degradation_level}%</div>
-          </div>
-          <div className="p-4 bg-slate-800/30 rounded-lg">
-            <div className="text-slate-500 mb-1">Lambda</div>
-            <div className="text-white font-semibold">{correction_factors.lambda}</div>
-          </div>
-          <div className="p-4 bg-slate-800/30 rounded-lg">
-            <div className="text-slate-500 mb-1">Omega</div>
-            <div className="text-white font-semibold">{correction_factors.omega}</div>
-          </div>
-          <div className="p-4 bg-slate-800/30 rounded-lg">
-            <div className="text-slate-500 mb-1">Stoichiometric</div>
-            <div className="text-white font-semibold">{correction_factors.stoichiometric_factor}</div>
-          </div>
-        </div>
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   );

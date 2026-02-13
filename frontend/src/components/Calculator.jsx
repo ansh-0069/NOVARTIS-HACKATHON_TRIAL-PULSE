@@ -4,7 +4,7 @@ import axios from 'axios';
 import Results from './Results';
 import {
   Beaker, Save, RotateCcw, Sparkles, AlertCircle,
-  Info, TrendingUp, Zap, ChevronRight, Download
+  Info, TrendingUp, Zap, ChevronRight, Download, AlertTriangle
 } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
@@ -56,6 +56,41 @@ function Calculator() {
   const [saved, setSaved] = useState(false);
   const [autoCalculate, setAutoCalculate] = useState(false);
   const [calculating, setCalculating] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
+  const [existingTests, setExistingTests] = useState([]);
+
+  // Check for duplicate sample IDs
+  useEffect(() => {
+    const checkDuplicate = async () => {
+      if (!inputs.sample_id || inputs.sample_id.trim() === '') {
+        setDuplicateWarning(false);
+        setExistingTests([]);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API_URL}/history`);
+        const calculations = response.data.calculations || [];
+
+        const duplicates = calculations.filter(
+          calc => calc.sample_id && calc.sample_id.toLowerCase() === inputs.sample_id.toLowerCase()
+        );
+
+        if (duplicates.length > 0) {
+          setDuplicateWarning(true);
+          setExistingTests(duplicates);
+        } else {
+          setDuplicateWarning(false);
+          setExistingTests([]);
+        }
+      } catch (error) {
+        console.error('Error checking duplicates:', error);
+      }
+    };
+
+    const timer = setTimeout(checkDuplicate, 500);
+    return () => clearTimeout(timer);
+  }, [inputs.sample_id]);
 
   // Real-time calculation with debounce
   useEffect(() => {
@@ -122,6 +157,8 @@ function Calculator() {
     });
     setResults(null);
     setSaved(false);
+    setDuplicateWarning(false);
+    setExistingTests([]);
   };
 
   const handleDownloadExcel = async () => {
@@ -193,7 +230,12 @@ function Calculator() {
   ];
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
       {/* Header Card */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -263,6 +305,77 @@ function Calculator() {
           )}
         </div>
       </motion.div>
+
+      {/* Duplicate Sample ID Warning */}
+      {duplicateWarning && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative overflow-hidden rounded-2xl border border-yellow-500/50 bg-gradient-to-br from-yellow-900/20 to-slate-900/50 backdrop-blur-xl p-6"
+        >
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-yellow-500/10 rounded-lg border border-yellow-500/20 flex-shrink-0">
+              <AlertTriangle className="text-yellow-400" size={24} />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-yellow-400 mb-2">
+                Duplicate Sample ID Detected
+              </h3>
+              <p className="text-slate-300 text-sm mb-3">
+                Sample ID "<span className="font-mono font-bold text-yellow-400">{inputs.sample_id}</span>" already exists in the database with {existingTests.length} previous test{existingTests.length > 1 ? 's' : ''}.
+              </p>
+              <div className="space-y-2">
+                <p className="text-slate-400 text-xs font-semibold">Existing tests:</p>
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {existingTests.slice(0, 5).map((test) => (
+                    <div
+                      key={test.id}
+                      className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-medium text-sm">{test.sample_id}</span>
+                          <span className="text-slate-500 text-xs">•</span>
+                          <span className="text-slate-400 text-xs">
+                            {new Date(test.timestamp).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-slate-500">{test.analyst_name}</span>
+                          <span className="text-slate-600 text-xs">•</span>
+                          <span className="text-xs text-blue-400">{test.recommended_method}</span>
+                          <span className="text-slate-600 text-xs">•</span>
+                          <span className={`text-xs font-semibold ${test.status === 'PASS' ? 'text-green-400' :
+                            test.status === 'ALERT' ? 'text-yellow-400' : 'text-red-400'
+                            }`}>
+                            {test.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {existingTests.length > 5 && (
+                    <p className="text-xs text-slate-500 text-center py-2">
+                      +{existingTests.length - 5} more test{existingTests.length - 5 > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-blue-300 text-xs">
+                  <strong>Note:</strong> You can proceed with this Sample ID. The system will differentiate tests using timestamps and unique calculation IDs.
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Input Form */}
       <motion.div
@@ -353,16 +466,27 @@ function Calculator() {
             transition={{ delay: 0.4 }}
           >
             <label className="block mb-2">
-              <span className="text-sm font-medium text-slate-300 mb-2 block">
-                Sample ID
-              </span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-slate-300 mb-2 block">
+                  Sample ID
+                </span>
+                {duplicateWarning && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs text-yellow-400">
+                    <AlertTriangle size={12} />
+                    <span>Duplicate</span>
+                  </div>
+                )}
+              </div>
               <input
                 type="text"
                 name="sample_id"
                 value={inputs.sample_id}
                 onChange={handleInputChange}
                 placeholder="e.g., ABC-001"
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-sm hover:bg-slate-800/70"
+                className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all backdrop-blur-sm hover:bg-slate-800/70 ${duplicateWarning
+                  ? 'border-yellow-500/50 focus:ring-yellow-500/50 focus:border-yellow-500/50'
+                  : 'border-slate-700/50 focus:ring-blue-500/50 focus:border-blue-500/50'
+                  }`}
               />
             </label>
           </motion.div>
@@ -480,7 +604,7 @@ function Calculator() {
 
       {/* Results Component */}
       {results && <Results results={results} inputs={inputs} />}
-    </div>
+    </motion.div>
   );
 }
 

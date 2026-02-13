@@ -133,6 +133,26 @@ function Analytics() {
     });
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        duration: 0.8
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -147,22 +167,30 @@ function Analytics() {
 
   if (!stats) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-12 text-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-12 text-center"
+      >
         <BarChart3 size={64} className="text-slate-700 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">No Data Available</h3>
         <p className="text-slate-400">
           Perform calculations to see analytics and insights
         </p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        variants={itemVariants}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
       >
         <div className="flex items-center justify-between">
@@ -176,7 +204,7 @@ function Analytics() {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-800"
           >
             <option value="7d">Last 7 Days</option>
             <option value="30d">Last 30 Days</option>
@@ -217,15 +245,13 @@ function Analytics() {
             color: 'violet',
             change: '+2%'
           }
-        ].map((metric, index) => {
+        ].map((metric) => {
           const Icon = metric.icon;
           return (
             <motion.div
               key={metric.label}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-              className="relative overflow-hidden rounded-xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
+              variants={itemVariants}
+              className="relative overflow-hidden rounded-xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6 hover:border-slate-700/50 transition-colors"
             >
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-${metric.color}-500/10 to-transparent blur-2xl`} />
 
@@ -246,8 +272,7 @@ function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Trend Chart */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
         >
           <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
@@ -286,6 +311,7 @@ function Analytics() {
                 fillOpacity={1}
                 fill="url(#colorLK)"
                 name="LK-IMB"
+                animationDuration={1500}
               />
               <Area
                 type="monotone"
@@ -294,6 +320,7 @@ function Analytics() {
                 fillOpacity={1}
                 fill="url(#colorCIMB)"
                 name="CIMB"
+                animationDuration={1500}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -301,9 +328,7 @@ function Analytics() {
 
         {/* Method Distribution */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
+          variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
         >
           <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
@@ -322,6 +347,7 @@ function Analytics() {
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
+                animationDuration={1500}
               >
                 {stats.methodDistribution.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -334,9 +360,7 @@ function Analytics() {
 
         {/* Status Distribution */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
+          variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
         >
           <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
@@ -357,16 +381,14 @@ function Analytics() {
                 tick={{ fill: '#94a3b8', fontSize: 12 }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} animationDuration={1500} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
 
         {/* Risk Assessment */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
+          variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
         >
           <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
@@ -383,12 +405,9 @@ function Analytics() {
               };
 
               return (
-                <motion.div
+                <div
                   key={risk.name}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className={`p-4 ${colors[risk.name].bg} rounded-xl border border-slate-700/50`}
+                  className={`p-4 ${colors[risk.name].bg} rounded-xl border border-slate-700/50 hover:bg-slate-800/30 transition-colors`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-white font-semibold">{risk.name}</span>
@@ -400,14 +419,14 @@ function Analytics() {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${risk.percentage}%` }}
-                      transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
+                      transition={{ duration: 1.5, delay: 0.8 + index * 0.1, ease: "easeOut" }}
                       className={`h-full ${colors[risk.name].bar}`}
                     />
                   </div>
                   <div className="text-xs text-slate-400 mt-1">
                     {risk.value} samples
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -416,8 +435,7 @@ function Analytics() {
 
       {/* Insights Panel */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        variants={itemVariants}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
       >
         <div className="flex items-center gap-3 mb-6">
@@ -428,7 +446,7 @@ function Analytics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-6 bg-green-500/10 rounded-xl border border-green-500/20">
+          <div className="p-6 bg-green-500/10 rounded-xl border border-green-500/20 hover:bg-green-500/20 transition-colors">
             <CheckCircle className="text-green-400 mb-3" size={24} />
             <h4 className="text-white font-semibold mb-2">High Success Rate</h4>
             <p className="text-sm text-slate-400">
@@ -436,7 +454,7 @@ function Analytics() {
             </p>
           </div>
 
-          <div className="p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
+          <div className="p-6 bg-blue-500/10 rounded-xl border border-blue-500/20 hover:bg-blue-500/20 transition-colors">
             <Target className="text-blue-400 mb-3" size={24} />
             <h4 className="text-white font-semibold mb-2">Optimal Methods</h4>
             <p className="text-sm text-slate-400">
@@ -444,7 +462,7 @@ function Analytics() {
             </p>
           </div>
 
-          <div className="p-6 bg-violet-500/10 rounded-xl border border-violet-500/20">
+          <div className="p-6 bg-violet-500/10 rounded-xl border border-violet-500/20 hover:bg-violet-500/20 transition-colors">
             <TrendingUp className="text-violet-400 mb-3" size={24} />
             <h4 className="text-white font-semibold mb-2">Quality Trend</h4>
             <p className="text-sm text-slate-400">
@@ -453,7 +471,7 @@ function Analytics() {
           </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
 

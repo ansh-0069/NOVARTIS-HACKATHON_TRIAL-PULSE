@@ -135,11 +135,17 @@ function History() {
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
       {/* Header */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
         className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
       >
         <div className="flex items-center justify-between mb-6">
@@ -211,6 +217,7 @@ function History() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
           className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-12 text-center"
         >
           <Eye size={64} className="text-slate-700 mx-auto mb-4" />
@@ -225,6 +232,7 @@ function History() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
           className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl"
         >
           <div className="overflow-x-auto">
@@ -278,7 +286,7 @@ function History() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        transition={{ delay: index * 0.03, duration: 0.2 }}
                         className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors"
                       >
                         <td className="px-6 py-4 text-sm text-slate-300">
@@ -289,9 +297,19 @@ function History() {
                           })}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-sm font-mono text-blue-400">
-                            {calc.sample_id || '-'}
-                          </span>
+                          <div>
+                            <span className="text-sm font-mono text-blue-400 font-semibold">
+                              {calc.sample_id || '-'}
+                            </span>
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              {new Date(calc.timestamp).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-300">
                           {calc.analyst_name || '-'}
@@ -374,7 +392,7 @@ function History() {
           </div>
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

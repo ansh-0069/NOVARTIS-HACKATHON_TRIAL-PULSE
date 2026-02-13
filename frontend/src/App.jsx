@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Calculator from './components/Calculator';
 import History from './components/History';
 import Analytics from './components/Analytics';
@@ -22,28 +22,7 @@ function App() {
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.03),transparent_50%)]" />
 
 
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-400/20 rounded-full"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight
-            }}
-            animate={{
-              y: [null, Math.random() * window.innerHeight],
-              x: [null, Math.random() * window.innerWidth],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: Math.random() * 20 + 10,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          />
-        ))}
-      </div>
+      {/* Background animation removed to prevent shaky dashboard effect */}
 
 
       <div className="relative z-10">
@@ -105,19 +84,9 @@ function App() {
 
 
         <main className="max-w-7xl mx-auto px-6 py-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {activeTab === 'calculator' && <Calculator />}
-              {activeTab === 'analytics' && <Analytics />}
-              {activeTab === 'history' && <History />}
-            </motion.div>
-          </AnimatePresence>
+          {activeTab === 'calculator' && <Calculator />}
+          {activeTab === 'analytics' && <Analytics />}
+          {activeTab === 'history' && <History />}
         </main>
 
 
