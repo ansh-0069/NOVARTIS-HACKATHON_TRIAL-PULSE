@@ -4,7 +4,7 @@ import axios from 'axios';
 import Results from './Results';
 import {
   Beaker, Save, RotateCcw, Sparkles, AlertCircle,
-  Info, TrendingUp, Zap, ChevronRight
+  Info, TrendingUp, Zap, ChevronRight, Download
 } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
@@ -123,6 +123,29 @@ function Calculator() {
     });
     setResults(null);
     setSaved(false);
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/excel/generate`,
+        inputs,
+        { responseType: 'blob' }
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${inputs.sample_id}_${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to generate Excel report');
+    }
   };
 
   const inputFields = [
@@ -402,18 +425,30 @@ function Calculator() {
           </button>
 
           {results && (
-            <motion.button
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              onClick={handleSave}
-              className={`px-6 py-4 rounded-xl font-semibold transition-all flex items-center gap-2 ${saved
+            <>
+              <motion.button
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                onClick={handleSave}
+                className={`px-6 py-4 rounded-xl font-semibold transition-all flex items-center gap-2 ${saved
                   ? 'bg-green-500/20 text-green-400 border border-green-500/50'
                   : 'bg-slate-800/50 text-slate-300 hover:bg-slate-800 border border-slate-700/50'
-                }`}
-            >
-              <Save size={20} />
-              {saved ? 'Saved!' : 'Save'}
-            </motion.button>
+                  }`}
+              >
+                <Save size={20} />
+                {saved ? 'Saved!' : 'Save'}
+              </motion.button>
+
+              <motion.button
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                onClick={handleDownloadExcel}
+                className="px-6 py-4 rounded-xl bg-green-600 hover:bg-green-500 text-white border border-green-500 font-semibold transition-all flex items-center gap-2 shadow-lg shadow-green-500/25 hover:shadow-green-500/40"
+              >
+                <Download size={20} />
+                Download Excel
+              </motion.button>
+            </>
           )}
 
           <motion.button
@@ -445,7 +480,7 @@ function Calculator() {
       </motion.div>
 
       {/* Results Component */}
-      {results && <Results results={results} />}
+      {results && <Results results={results} inputs={inputs} />}
     </div>
   );
 }

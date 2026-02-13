@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { 
+import {
   Trash2, Search, Filter, ChevronLeft, ChevronRight,
   Calendar, User, Beaker, CheckCircle, AlertTriangle,
   XCircle, Download, Eye
@@ -68,12 +68,33 @@ function History() {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this calculation?')) return;
-    
+
     try {
       await axios.delete(`${API_URL}/calculation/${id}`);
       fetchHistory();
     } catch (error) {
       alert('Error deleting: ' + error.message);
+    }
+  };
+
+  const handleDownloadHistory = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/excel/history?limit=1000`,
+        { responseType: 'blob' }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `History_${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to generate history report');
     }
   };
 
@@ -128,6 +149,13 @@ function History() {
               {total} total analyses • Showing {filteredCalculations.length} results
             </p>
           </div>
+          <button
+            onClick={handleDownloadHistory}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+          >
+            <Download size={18} />
+            Export History
+          </button>
         </div>
 
         {/* Filters */}
@@ -299,9 +327,9 @@ function History() {
                             className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
                             title="Delete calculation"
                           >
-                            <Trash2 
-                              size={16} 
-                              className="text-slate-500 group-hover:text-red-400 transition-colors" 
+                            <Trash2
+                              size={16}
+                              className="text-slate-500 group-hover:text-red-400 transition-colors"
                             />
                           </motion.button>
                         </td>

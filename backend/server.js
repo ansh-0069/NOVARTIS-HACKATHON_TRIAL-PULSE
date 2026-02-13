@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,6 +11,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// Excel Generator Module
+const excelGenerator = require('./excelGenerator');
 
 // Database setup
 const db = new sqlite3.Database('./mass_balance.db', (err) => {
@@ -221,47 +225,46 @@ function calculateMassBalance(data) {
     const recommended_value =
         recommended_method === 'AMB' ? amb :
             recommended_method === 'RMB' ? rmb :
-                recommended_method === 'CIMB' ? cimb_point :
-                    lk_imb;
+                recommended_method === 'LK-IMB' ? lk_imb_point :
+                    recommended_method === 'CIMB' ? cimb_point :
+                        smb;
 
-    // Calculate confidence index
-    const confidence_index = Math.abs(100 - amb) > 0
-        ? 100 * (1 - analytical_uncertainty / Math.abs(100 - amb))
-        : 95;
+    // Calculate confidence index based on degradation level
+    let confidence_index;
+    if (degradation_level < 5) {
+        confidence_index = 70;
+    } else if (degradation_level < 10) {
+        confidence_index = 85;
+    } else {
+        confidence_index = 95;
+    }
 
     // Determine status
     let status;
-    if (recommended_value >= 95 && recommended_value <= 105) {
+    if (recommended_value >= 98 && recommended_value <= 102) {
         status = 'PASS';
-    } else if (recommended_value >= 90) {
+    } else if (recommended_value >= 95 && recommended_value <= 105) {
         status = 'ALERT';
     } else {
         status = 'OOS';
     }
 
-    // Generate diagnostic message
+    // Diagnostic message
     let diagnostic_message;
-    let rationale;
-
-    if (cimb_risk_level === 'HIGH') {
-        diagnostic_message = '⚠ HIGH RISK: Mass balance outside acceptable limits. CIMB method with statistical validation required. Investigate potential analytical issues or undetected degradants.';
-        rationale = `CIMB = ${cimb_point.toFixed(2)}% (95% CI: ${cimb_lower_ci.toFixed(2)}% - ${cimb_upper_ci.toFixed(2)}%). Risk level: ${cimb_risk_level}. Immediate investigation required per ICH Q1A(R2).`;
-    } else if (amb < 95 && lambda === 1.0 && omega === 1.0) {
-        diagnostic_message = '⚠ Suspected volatile loss detected. Recommend headspace GC-MS analysis.';
-        rationale = 'Low mass balance with no correction factors suggests volatile degradation products.';
-    } else if (amb < 95 && lambda > 1.2) {
-        diagnostic_message = '⚠ UV-silent degradant suspected. Consider CAD or CLND detection.';
-        rationale = 'High RRF correction suggests chromophore changes in degradation pathway.';
-    } else if (delta_api < 2) {
-        diagnostic_message = '✓ Low degradation level. AMB method appropriate.';
-        rationale = 'Minimal degradation observed. Standard absolute method is sufficient.';
-    } else if (degradation_level > 20) {
-        diagnostic_message = `✓ High degradation detected. CIMB method recommended with ${cimb_risk_level} risk level. Stoichiometric corrections applied (S=${stoichiometric_factor.toFixed(2)}).`;
-        rationale = `CIMB = ${cimb_point.toFixed(2)}% ± ${cimb_margin_of_error.toFixed(2)}% (95% CI). High degradation with pathway-specific corrections applied.`;
+    if (recommended_value < 95) {
+        diagnostic_message = 'Mass balance is below acceptable limits. Investigate for undetected degradation products or analytical method deficiencies.';
+    } else if (recommended_value > 105) {
+        diagnostic_message = 'Mass balance exceeds 105%. Check for analytical interference, impurity peaks being misidentified as API, or calibration issues.';
+    } else if (recommended_value >= 95 && recommended_value < 98) {
+        diagnostic_message = 'Mass balance is at lower borderline. Monitor closely and consider method validation.';
+    } else if (recommended_value > 102 && recommended_value <= 105) {
+        diagnostic_message = 'Mass balance is at upper borderline. Verify peak purity and check for co-elution.';
     } else {
-        diagnostic_message = '✓ Mass balance acceptable. Continue routine testing per ICH Q1A(R2).';
-        rationale = 'Results within acceptable limits. No anomalies detected.';
+        diagnostic_message = 'Mass balance is within acceptable limits (98-102%). Method demonstrates good recovery.';
     }
+
+    // Rationale
+    const rationale = `The ${recommended_method} method was selected based on ${degradation_level.toFixed(1)}% degradation level. This method accounts for ${recommended_method === 'CIMB' ? 'detector response (RRF), molecular weight changes, and degradation pathway stoichiometry' : recommended_method === 'LK-IMB' ? 'detector response (RRF) and molecular weight changes' : 'the specific characteristics of this degradation study'}.`;
 
     return {
         calculation_id: uuidv4(),
@@ -294,15 +297,18 @@ function calculateMassBalance(data) {
     };
 }
 
+// ============================================
 // API Endpoints
+// ============================================
 
 // Health check
 app.get('/', (req, res) => {
     res.json({
         status: 'running',
-        message: 'Mass Balance Calculator API - Enhanced with CIMB',
-        version: '2.0.0',
-        methods: ['SMB', 'AMB', 'RMB', 'LK-IMB', 'CIMB']
+        message: 'Mass Balance Calculator API - Enhanced with CIMB & Excel Reports',
+        version: '2.1.0',
+        methods: ['SMB', 'AMB', 'RMB', 'LK-IMB', 'CIMB'],
+        features: ['Statistical Validation', 'Excel Report Generation']
     });
 });
 
@@ -447,31 +453,185 @@ app.delete('/api/calculation/:id', (req, res) => {
     });
 });
 
-// Start server
+// ============================================
+// EXCEL REPORT GENERATION ENDPOINTS
+// ============================================
+
+// GET /api/excel/template
+// Download a blank Excel template
+app.get('/api/excel/template', async (req, res) => {
+    try {
+        console.log('📥 Generating Excel template...');
+        const result = await excelGenerator.generateExcelReport({
+            outputPath: 'Mass_Balance_Template.xlsx'
+        });
+
+        console.log('✓ Template generated:', result.filePath);
+        res.download(result.filePath, 'Mass_Balance_Template.xlsx', (err) => {
+            if (err) {
+                console.error('❌ Download error:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to download template' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('❌ Template generation error:', error);
+        res.status(500).json({
+            error: 'Failed to generate template',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/excel/generate
+// Generate Excel report from provided calculation data
+app.post('/api/excel/generate', async (req, res) => {
+    try {
+        console.log('📊 Generating Excel report from data...');
+        const data = req.body;
+        const filename = `${data.sample_id || 'Report'}_${Date.now()}.xlsx`;
+
+        const result = await excelGenerator.generateExcelReport({
+            data,
+            outputPath: filename
+        });
+
+        console.log('✓ Excel report generated:', result.filePath);
+        res.download(result.filePath, filename, (err) => {
+            if (err) {
+                console.error('❌ Download error:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to download report' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('❌ Report generation error details:', JSON.stringify(error, null, 2));
+        res.status(500).json({
+            error: 'Failed to generate report',
+            details: error.error || error.message
+        });
+    }
+});
+
+// GET /api/excel/calculation/:id
+// Generate Excel report for a specific saved calculation
+app.get('/api/excel/calculation/:id', async (req, res) => {
+    try {
+        console.log('📊 Generating Excel report for calculation:', req.params.id);
+
+        const result = await excelGenerator.generateReportFromCalculation(db, req.params.id);
+
+        console.log('✓ Report generated:', result.filePath);
+        res.download(result.filePath, path.basename(result.filePath), (err) => {
+            if (err) {
+                console.error('❌ Download error:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to download report' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('❌ Report generation error:', error);
+        res.status(500).json({
+            error: 'Failed to generate report',
+            details: error.message
+        });
+    }
+});
+
+// GET /api/excel/history
+// Generate Excel report with calculation history
+app.get('/api/excel/history', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 100;
+        console.log(`📊 Generating history report (${limit} records)...`);
+
+        const result = await excelGenerator.generateHistoryReport(db, limit);
+
+        console.log('✓ History report generated:', result.filePath);
+        res.download(result.filePath, 'Calculation_History.xlsx', (err) => {
+            if (err) {
+                console.error('❌ Download error:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to download history report' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('❌ History report error details:', JSON.stringify(error, null, 2));
+        res.status(500).json({
+            error: 'Failed to generate history report',
+            details: error.error || error.message
+        });
+    }
+});
+
+// GET /api/excel/database
+// Generate complete database report with all calculations
+app.get('/api/excel/database', async (req, res) => {
+    try {
+        console.log('📊 Generating complete database report...');
+
+        const result = await excelGenerator.generateExcelReport({
+            dbPath: './mass_balance.db',
+            outputPath: `Database_Report_${Date.now()}.xlsx`
+        });
+
+        console.log('✓ Database report generated:', result.filePath);
+        res.download(result.filePath, 'Database_Report.xlsx', (err) => {
+            if (err) {
+                console.error('❌ Download error:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to download database report' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('❌ Database report error:', error);
+        res.status(500).json({
+            error: 'Failed to generate database report',
+            details: error.message
+        });
+    }
+});
+
+// ============================================
+// Start Server
+// ============================================
+
 app.listen(PORT, () => {
     console.log('');
     console.log('═══════════════════════════════════════════════════');
     console.log('   ✓ Backend server running successfully!');
-    console.log('   ✓ Enhanced with CIMB Method');
+    console.log('   ✓ Enhanced with CIMB Method + Excel Reports');
     console.log('   ✓ URL: http://localhost:' + PORT);
     console.log('   ✓ Database: SQLite (mass_balance.db)');
     console.log('   ✓ Status: Ready to receive requests');
     console.log('═══════════════════════════════════════════════════');
     console.log('');
     console.log('Available Methods:');
-    console.log('  • SMB  - Simple Mass Balance');
-    console.log('  • AMB  - Absolute Mass Balance');
-    console.log('  • RMB  - Relative Mass Balance');
+    console.log('  • SMB    - Simple Mass Balance');
+    console.log('  • AMB    - Absolute Mass Balance');
+    console.log('  • RMB    - Relative Mass Balance');
     console.log('  • LK-IMB - Lukulay-Körner Integrated Mass Balance');
-    console.log('  • CIMB - Corrected Integrated Mass Balance (NEW!)');
+    console.log('  • CIMB   - Corrected Integrated Mass Balance');
     console.log('');
-    console.log('Available endpoints:');
-    console.log('  GET  / - Health check');
-    console.log('  POST /api/calculate - Calculate mass balance');
-    console.log('  POST /api/save - Save calculation');
-    console.log('  GET  /api/history - Get calculation history');
-    console.log('  GET  /api/calculation/:id - Get specific calculation');
-    console.log('  DELETE /api/calculation/:id - Delete calculation');
+    console.log('API Endpoints:');
+    console.log('  GET  /                          - Health check');
+    console.log('  POST /api/calculate             - Calculate mass balance');
+    console.log('  POST /api/save                  - Save calculation');
+    console.log('  GET  /api/history               - Get calculation history');
+    console.log('  GET  /api/calculation/:id       - Get specific calculation');
+    console.log('  DELETE /api/calculation/:id     - Delete calculation');
+    console.log('');
+    console.log('Excel Report Endpoints:');
+    console.log('  GET  /api/excel/template        - Download blank template');
+    console.log('  POST /api/excel/generate        - Generate report from data');
+    console.log('  GET  /api/excel/calculation/:id - Report for calculation');
+    console.log('  GET  /api/excel/history         - History report (limit param)');
+    console.log('  GET  /api/excel/database        - Full database report');
     console.log('');
 });
 
