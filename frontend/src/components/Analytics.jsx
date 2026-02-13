@@ -222,13 +222,13 @@ function Analytics() {
           return (
             <motion.div
               key={metric.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               className="relative overflow-hidden rounded-xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
             >
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-${metric.color}-500/10 to-transparent blur-2xl`} />
-              
+
               <div className="relative">
                 <div className="flex items-center justify-between mb-4">
                   <Icon className={`text-${metric.color}-400`} size={24} />
@@ -259,17 +259,17 @@ function Analytics() {
             <AreaChart data={stats.trendData}>
               <defs>
                 <linearGradient id="colorLK" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorCIMB" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-              <XAxis 
-                dataKey="index" 
+              <XAxis
+                dataKey="index"
                 stroke="#94a3b8"
                 tick={{ fill: '#94a3b8', fontSize: 11 }}
               />
@@ -279,20 +279,20 @@ function Analytics() {
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Area 
-                type="monotone" 
-                dataKey="lk_imb" 
-                stroke="#10b981" 
+              <Area
+                type="monotone"
+                dataKey="lk_imb"
+                stroke="#10b981"
                 fillOpacity={1}
-                fill="url(#colorLK)" 
+                fill="url(#colorLK)"
                 name="LK-IMB"
               />
-              <Area 
-                type="monotone" 
-                dataKey="cimb" 
-                stroke="#06b6d4" 
+              <Area
+                type="monotone"
+                dataKey="cimb"
+                stroke="#06b6d4"
                 fillOpacity={1}
-                fill="url(#colorCIMB)" 
+                fill="url(#colorCIMB)"
                 name="CIMB"
               />
             </AreaChart>
@@ -347,8 +347,8 @@ function Analytics() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={stats.statusDistribution}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-              <XAxis 
-                dataKey="name" 
+              <XAxis
+                dataKey="name"
                 stroke="#94a3b8"
                 tick={{ fill: '#94a3b8', fontSize: 12 }}
               />
