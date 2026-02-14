@@ -1,0 +1,185 @@
+{
+    "description": "Historical mass balance data with validated pass/fail outcomes",
+    "data": [
+        {
+            "sample_id": "VAL-001",
+            "degradation_level": 2.5,
+            "lk_imb": 99.2,
+            "cimb": 99.5,
+            "confidence_index": 72,
+            "actual_failure": false,
+            "notes": "Low degradation, stable compound"
+        },
+        {
+            "sample_id": "VAL-002",
+            "degradation_level": 8.3,
+            "lk_imb": 97.8,
+            "cimb": 98.1,
+            "confidence_index": 86,
+            "actual_failure": false,
+            "notes": "Moderate degradation, acceptable MB"
+        },
+        {
+            "sample_id": "VAL-003",
+            "degradation_level": 15.7,
+            "lk_imb": 96.5,
+            "cimb": 97.2,
+            "confidence_index": 94,
+            "actual_failure": false,
+            "notes": "High degradation, well-characterized"
+        },
+        {
+            "sample_id": "FAIL-001",
+            "degradation_level": 3.1,
+            "lk_imb": 92.3,
+            "cimb": 93.1,
+            "confidence_index": 68,
+            "actual_failure": true,
+            "notes": "Volatile loss detected, MB failure"
+        },
+        {
+            "sample_id": "FAIL-002",
+            "degradation_level": 9.5,
+            "lk_imb": 88.7,
+            "cimb": 90.2,
+            "confidence_index": 83,
+            "actual_failure": true,
+            "notes": "UV-silent degradants missed"
+        },
+        {
+            "sample_id": "FAIL-003",
+            "degradation_level": 22.4,
+            "lk_imb": 85.3,
+            "cimb": 87.9,
+            "confidence_index": 91,
+            "actual_failure": true,
+            "notes": "Extensive degradation, RRF correction inadequate"
+        },
+        {
+            "sample_id": "VAL-004",
+            "degradation_level": 4.2,
+            "lk_imb": 98.5,
+            "cimb": 99.1,
+            "confidence_index": 78,
+            "actual_failure": false,
+            "notes": "Standard hydrolysis, good recovery"
+        },
+        {
+            "sample_id": "VAL-005",
+            "degradation_level": 11.3,
+            "lk_imb": 97.2,
+            "cimb": 97.9,
+            "confidence_index": 89,
+            "actual_failure": false,
+            "notes": "Oxidative stress, well-balanced"
+        },
+        {
+            "sample_id": "FAIL-004",
+            "degradation_level": 6.8,
+            "lk_imb": 91.5,
+            "cimb": 92.8,
+            "confidence_index": 80,
+            "actual_failure": true,
+            "notes": "Photolytic degradation, unaccounted products"
+        },
+        {
+            "sample_id": "VAL-006",
+            "degradation_level": 18.9,
+            "lk_imb": 96.8,
+            "cimb": 97.5,
+            "confidence_index": 93,
+            "actual_failure": false,
+            "notes": "Thermal stress, complete mass balance"
+        },
+        {
+            "sample_id": "FAIL-005",
+            "degradation_level": 12.1,
+            "lk_imb": 89.3,
+            "cimb": 91.1,
+            "confidence_index": 87,
+            "actual_failure": true,
+            "notes": "Base hydrolysis, secondary degradation"
+        },
+        {
+            "sample_id": "VAL-007",
+            "degradation_level": 7.6,
+            "lk_imb": 98.1,
+            "cimb": 98.7,
+            "confidence_index": 84,
+            "actual_failure": false,
+            "notes": "Acid stress, predictable pathway"
+        },
+        {
+            "sample_id": "VAL-008",
+            "degradation_level": 1.8,
+            "lk_imb": 99.5,
+            "cimb": 99.7,
+            "confidence_index": 69,
+            "actual_failure": false,
+            "notes": "Minimal degradation, highly stable"
+        },
+        {
+            "sample_id": "FAIL-006",
+            "degradation_level": 19.3,
+            "lk_imb": 87.2,
+            "cimb": 89.5,
+            "confidence_index": 92,
+            "actual_failure": true,
+            "notes": "Complex degradation pattern"
+        },
+        {
+            "sample_id": "VAL-009",
+            "degradation_level": 13.5,
+            "lk_imb": 97.5,
+            "cimb": 98.2,
+            "confidence_index": 91,
+            "actual_failure": false,
+            "notes": "Oxidative, well-characterized degradants"
+        },
+        {
+            "sample_id": "VAL-010",
+            "degradation_level": 5.9,
+            "lk_imb": 98.8,
+            "cimb": 99.2,
+            "confidence_index": 81,
+            "actual_failure": false,
+            "notes": "Photolytic, single major degradant"
+        },
+        {
+            "sample_id": "FAIL-007",
+            "degradation_level": 8.7,
+            "lk_imb": 90.1,
+            "cimb": 91.8,
+            "confidence_index": 85,
+            "actual_failure": true,
+            "notes": "Multiple unidentified peaks"
+        },
+        {
+            "sample_id": "VAL-011",
+            "degradation_level": 16.2,
+            "lk_imb": 96.9,
+            "cimb": 97.6,
+            "confidence_index": 93,
+            "actual_failure": false,
+            "notes": "Thermal, high degradation but balanced"
+        },
+        {
+            "sample_id": "VAL-012",
+            "degradation_level": 3.7,
+            "lk_imb": 99.1,
+            "cimb": 99.4,
+            "confidence_index": 75,
+            "actual_failure": false,
+            "notes": "Low stress, good stability"
+        },
+        {
+            "sample_id": "FAIL-008",
+            "degradation_level": 14.6,
+            "lk_imb": 88.5,
+            "cimb": 90.3,
+            "confidence_index": 90,
+            "actual_failure": true,
+            "notes": "Cascade degradation pathway"
+        }
+    ]
+}

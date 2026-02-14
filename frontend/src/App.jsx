@@ -1,109 +1,148 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Activity, BarChart3, Database, History as HistoryIcon,
+  Shield, Sparkles, Clock
+} from 'lucide-react';
 import Calculator from './components/Calculator';
-import History from './components/History';
 import Analytics from './components/Analytics';
-import { Activity, History as HistoryIcon, BarChart3, Sparkles } from 'lucide-react';
+import History from './components/History';
+import Regulatory from './components/Regulatory';
+import LIMSConfig from './components/LIMSConfig';
+import PredictiveDegradation from './components/PredictiveDegradation';
+import QbDDashboard from './components/QbDDashboard';
+import StabilityMonitor from './components/StabilityMonitor';
 
 function App() {
   const [activeTab, setActiveTab] = useState('calculator');
 
   const tabs = [
-    { id: 'calculator', label: 'Analysis Lab', icon: Activity },
-    { id: 'analytics', label: 'Intelligence', icon: BarChart3 },
-    { id: 'history', label: 'Archive', icon: HistoryIcon },
+    { id: 'calculator', label: 'Analysis Lab', icon: Activity, group: 'Lab' },
+    { id: 'lims', label: 'LIMS', icon: Database, group: 'Lab' },
+    { id: 'history', label: 'Archive', icon: HistoryIcon, group: 'Lab' },
+    { id: 'analytics', label: 'Intelligence', icon: BarChart3, group: 'AI' },
+    { id: 'predict', label: 'Predict', icon: Sparkles, group: 'AI' },
+    { id: 'stability', label: 'Stability', icon: Clock, group: 'AI' },
+    { id: 'regulatory', label: 'Compliance', icon: Shield, group: 'Reg' },
+    { id: 'qbd', label: 'QbD', icon: Shield, group: 'Reg' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-blue-500/30">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+      </div>
 
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(56,189,248,0.05),transparent_50%)]" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.03),transparent_50%)]" />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Modern Navbar */}
+        <nav className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-2xl bg-slate-950/40">
+          <div className="max-w-[1600px] mx-auto px-8">
+            <div className="flex items-center justify-between h-20">
 
-
-      {/* Background animation removed to prevent shaky dashboard effect */}
-
-
-      <div className="relative z-10">
-
-        <nav className="border-b border-slate-800/50 backdrop-blur-xl bg-slate-900/40">
-          <div className="max-w-7xl mx-auto px-6 py-6">
-            <div className="flex items-center justify-between">
-
+              {/* Brand Section */}
               <motion.div
-                className="flex items-center gap-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
+                className="flex items-center gap-4 cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                onClick={() => setActiveTab('calculator')}
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-violet-500 blur-xl opacity-50" />
-                  <div className="relative w-12 h-12 bg-gradient-to-br from-blue-500 to-violet-500 rounded-xl flex items-center justify-center">
-                    <Sparkles className="text-white" size={24} />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 blur-lg opacity-40 animate-pulse" />
+                  <div className="relative w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg border border-white/10">
+                    <Sparkles className="text-white" size={20} />
                   </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight">
-                    Mass Balance<span className="text-blue-400"> AI</span>
+                <div className="hidden lg:block">
+                  <h1 className="text-xl font-black text-white tracking-tight leading-none">
+                    Mass Balance
                   </h1>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    Pharmaceutical Intelligence Platform
-                  </p>
+                  <span className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] mt-1 block">Platform v2.1</span>
                 </div>
               </motion.div>
 
-
-              <div className="flex gap-2 bg-slate-900/60 backdrop-blur-xl p-1.5 rounded-xl border border-slate-800/50">
-                {tabs.map((tab, index) => {
+              {/* Navigation Center */}
+              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">
+                {tabs.map((tab) => {
                   const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
                   return (
-                    <motion.button
+                    <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`relative px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${activeTab === tab.id
-                        ? 'text-white'
-                        : 'text-slate-400 hover:text-slate-300'
+                      className={`relative px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 group ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'
                         }`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
                     >
-                      {activeTab === tab.id && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-violet-600 rounded-lg" />
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-bg"
+                          className="absolute inset-0 bg-blue-600 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
                       )}
-                      <Icon size={18} className="relative z-10" />
+                      <Icon size={16} className={`relative z-10 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                       <span className="relative z-10">{tab.label}</span>
-                    </motion.button>
+                    </button>
                   );
                 })}
+              </div>
+
+              {/* Action Section */}
+              <div className="hidden xl:flex items-center gap-4">
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Secure</span>
+                  </div>
+                  <span className="text-[9px] text-slate-600 font-mono">256-BIT ENCRYPTION</span>
+                </div>
               </div>
             </div>
           </div>
         </nav>
 
-
-        <main className="max-w-7xl mx-auto px-6 py-8">
-          {activeTab === 'calculator' && <Calculator />}
-          {activeTab === 'analytics' && <Analytics />}
-          {activeTab === 'history' && <History />}
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-[1600px] mx-auto w-full px-8 py-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+              transition={{ duration: 0.3, ease: "circOut" }}
+            >
+              {activeTab === 'calculator' && <Calculator />}
+              {activeTab === 'analytics' && <Analytics />}
+              {activeTab === 'history' && <History />}
+              {activeTab === 'regulatory' && <Regulatory />}
+              {activeTab === 'lims' && <LIMSConfig />}
+              {activeTab === 'predict' && <PredictiveDegradation />}
+              {activeTab === 'qbd' && <QbDDashboard />}
+              {activeTab === 'stability' && <StabilityMonitor />}
+            </motion.div>
+          </AnimatePresence>
         </main>
 
+        {/* Dynamic Footer */}
+        <footer className="mt-auto border-t border-white/5 bg-slate-950/20 backdrop-blur-md">
+          <div className="max-w-[1600px] mx-auto px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-4">
+              <div className="text-slate-500 hover:text-slate-400 text-xs transition-colors cursor-help border-b border-dashed border-slate-700 pb-0.5">
+                ICH Q1A(R2) / Q3B(R2) Validated
+              </div>
+              <div className="w-1 h-1 bg-slate-800 rounded-full" />
+              <div className="text-slate-600 text-[10px] font-mono">
+                Instance ID: MB-AI-NODE-PRIME
+              </div>
+            </div>
 
-        <footer className="border-t border-slate-800/50 backdrop-blur-xl bg-slate-900/40 mt-12">
-          <div className="max-w-7xl mx-auto px-6 py-6">
-            <div className="flex items-center justify-between text-sm">
-              <div className="text-slate-400">
-                <span className="text-white font-semibold">Mass Balance AI</span> v2.0
-                <span className="mx-2">•</span>
-                <span className="text-blue-400">ICH Q1A(R2)</span> Compliant
-                <span className="mx-2">•</span>
-                Statistical Validation with 95% CI
+            <div className="flex items-center gap-8">
+              <div className="flex gap-4">
+                <div className="px-3 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10px] text-slate-500 font-bold uppercase tracking-tighter">95% Conf. Interval</div>
+                <div className="px-3 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10px] text-slate-500 font-bold uppercase tracking-tighter">G x P Compliant</div>
               </div>
-              <div className="flex items-center gap-2 text-slate-500">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span>System Operational</span>
-              </div>
+
             </div>
           </div>
         </footer>

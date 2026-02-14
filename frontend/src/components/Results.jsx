@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import axios from 'axios';
+import MLAnomaly from './MLAnomaly';
+import BayesianAnalysis from './BayesianAnalysis';
+import { generatePDF } from '../utils/pdfGenerator';
 const API_URL = 'http://localhost:5000/api';
 
 // Custom Chart Tooltip
@@ -40,24 +43,7 @@ function Results({ results, inputs }) {
   const { results: mb_results, correction_factors, recommended_method, recommended_value,
     status, diagnostic_message, rationale, confidence_index, degradation_level } = results;
 
-  // Prepare chart data
-  const chartData = [
-    { method: 'SMB', value: mb_results.smb, fill: '#64748b' },
-    { method: 'AMB', value: mb_results.amb, fill: '#3b82f6' },
-    { method: 'RMB', value: mb_results.rmb || 0, fill: mb_results.rmb ? '#8b5cf6' : '#475569' },
-    { method: 'LK-IMB', value: mb_results.lk_imb, fill: '#10b981', ci: [mb_results.lk_imb_lower_ci, mb_results.lk_imb_upper_ci] },
-    { method: 'CIMB', value: mb_results.cimb, fill: '#06b6d4', ci: [mb_results.cimb_lower_ci, mb_results.cimb_upper_ci] }
-  ];
-
-  // Radar chart for method comparison
-  const radarData = [
-    { metric: 'Accuracy', SMB: 70, AMB: 80, 'LK-IMB': 90, CIMB: 95 },
-    { metric: 'Precision', SMB: 65, AMB: 75, 'LK-IMB': 88, CIMB: 92 },
-    { metric: 'Complexity', SMB: 95, AMB: 85, 'LK-IMB': 60, CIMB: 50 },
-    { metric: 'Regulatory', SMB: 60, AMB: 70, 'LK-IMB': 85, CIMB: 95 },
-    { metric: 'Reliability', SMB: 70, AMB: 78, 'LK-IMB': 87, CIMB: 93 }
-  ];
-
+  // Define getStatusConfig BEFORE using it
   const getStatusConfig = (value) => {
     if (value >= 98 && value <= 102) {
       return {
@@ -88,6 +74,27 @@ function Results({ results, inputs }) {
       };
     }
   };
+
+  const statusConfig = getStatusConfig(recommended_value);
+
+  // Prepare chart data
+  const chartData = [
+    { method: 'SMB', value: mb_results.smb, fill: '#64748b' },
+    { method: 'AMB', value: mb_results.amb, fill: '#3b82f6' },
+    { method: 'RMB', value: mb_results.rmb || 0, fill: mb_results.rmb ? '#8b5cf6' : '#475569' },
+    { method: 'LK-IMB', value: mb_results.lk_imb, fill: '#10b981', ci: [mb_results.lk_imb_lower_ci, mb_results.lk_imb_upper_ci] },
+    { method: 'CIMB', value: mb_results.cimb, fill: '#06b6d4', ci: [mb_results.cimb_lower_ci, mb_results.cimb_upper_ci] }
+  ];
+
+  // Radar chart for method comparison
+  const radarData = [
+    { metric: 'Accuracy', SMB: 70, AMB: 80, 'LK-IMB': 90, CIMB: 95 },
+    { metric: 'Precision', SMB: 65, AMB: 75, 'LK-IMB': 88, CIMB: 92 },
+    { metric: 'Complexity', SMB: 95, AMB: 85, 'LK-IMB': 60, CIMB: 50 },
+    { metric: 'Regulatory', SMB: 60, AMB: 70, 'LK-IMB': 85, CIMB: 95 },
+    { metric: 'Reliability', SMB: 70, AMB: 78, 'LK-IMB': 87, CIMB: 93 }
+  ];
+
 
   const downloadPDF = () => {
     const doc = new jsPDF();
@@ -803,95 +810,185 @@ function Results({ results, inputs }) {
       animate="visible"
       className="space-y-6"
     >
-      {/* Executive Summary Banner */}
-      <motion.div
-        variants={itemVariants}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
-      >
-        <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${getStatusConfig(recommended_value).gradient} blur-3xl`} />
+      {/* Recommendation Engine Readout */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 relative group overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-2xl p-6 shadow-2xl">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[100px] rounded-full group-hover:bg-blue-600/10 transition-colors" />
 
-        <div className="relative">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className={`p-2 ${getStatusConfig(recommended_value).bg} rounded-lg border ${getStatusConfig(recommended_value).border}`}>
-                  {(() => {
-                    const Icon = getStatusConfig(recommended_value).icon;
-                    return <Icon className={getStatusConfig(recommended_value).color} size={24} />;
-                  })()}
+          {/* Export Controls - Top Right of this card */}
+          <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+            <select
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value)}
+              className="px-4 py-2 bg-slate-800/70 hover:bg-slate-700/70 border border-slate-600/50 text-slate-200 rounded-lg font-medium text-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            >
+              <option value="pdf">PDF</option>
+              <option value="csv">CSV</option>
+              <option value="excel">XLSX</option>
+            </select>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleExport}
+              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/30"
+            >
+              <Download size={16} />
+              <span className="text-sm">Export</span>
+            </motion.button>
+          </div>
+
+          <div className="relative flex flex-col items-start gap-6">
+            <div className="flex-1 w-full">
+              <div className="mb-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-blue-600/5 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/10 mt-1">
+                    <Target className="text-blue-400" size={24} strokeWidth={1.5} />
+                  </div>
+                  <div className="flex flex-col">
+                    <h3 className="text-[10px] font-black tracking-[0.2em] text-blue-400 uppercase font-display whitespace-nowrap mb-1">Recommended Intelligence</h3>
+                    <h2 className="text-2xl font-black text-white tracking-tight font-display uppercase leading-none">
+                      {recommended_method} <span className="text-slate-500 font-bold">Method</span>
+                    </h2>
+                  </div>
                 </div>
-                <h2 className="text-2xl font-bold text-white">Analysis Complete</h2>
               </div>
-              <p className="text-slate-400 text-sm">
-                Statistical validation with 95% confidence intervals
-              </p>
-            </div>
 
-            {/* Export Controls */}
-            <div className="flex items-center gap-3">
-              <select
-                value={exportFormat}
-                onChange={(e) => setExportFormat(e.target.value)}
-                className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-              >
-                <option value="pdf">PDF Report</option>
-                <option value="csv">CSV Data</option>
-                <option value="excel">Excel Report</option>
-              </select>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleExport}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/25"
-              >
-                <Download size={18} />
-                Export
-              </motion.button>
+              <div className="flex items-baseline gap-4 mb-6">
+                <div className="text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
+                  {recommended_value.toFixed(2)}<span className="text-2xl text-slate-500 ml-1">%</span>
+                </div>
+                <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest border transition-all ${statusConfig.bg} ${statusConfig.border} ${statusConfig.color} animate-pulse`}>
+                  {statusConfig.icon === CheckCircle ? 'OPTIMAL' : statusConfig.icon === AlertTriangle ? 'RE-VALIDATE' : 'INVALID'}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 backdrop-blur-md">
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Confidence Score</div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${confidence_index}%` }}
+                        className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                      />
+                    </div>
+                    <span className="text-xs font-mono text-blue-400 font-bold">{confidence_index}%</span>
+                  </div>
+                </div>
+                <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 backdrop-blur-md">
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Method Integrity</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-mono text-emerald-400 font-bold uppercase tracking-tighter">Validated Instrument</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Analysis - Now Inside */}
+              <div className={`relative overflow-hidden rounded-xl border ${statusConfig.border} ${statusConfig.bg} backdrop-blur-xl shadow-lg mb-6`}>
+                <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1.5 ${statusConfig.bg} rounded-lg border ${statusConfig.border}`}>
+                      <statusConfig.icon size={16} className={statusConfig.color} />
+                    </div>
+                    <div>
+                      <h3 className="text-[10px] font-bold tracking-wide uppercase" style={{ color: statusConfig.color.replace('text-', '') }}>Status Analysis</h3>
+                      <p className="text-[9px] text-slate-500 mt-0.5">Quality assessment</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 ${statusConfig.bg} rounded-md border ${statusConfig.border}`}>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${statusConfig.color}`}>
+                      {status}
+                    </span>
+                  </div>
+                </div>
+                <div className="px-5 py-4">
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    {diagnostic_message}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Key Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <Target size={16} className="text-blue-400" />
-                <span className="text-xs text-slate-400 uppercase tracking-wider">Recommended</span>
+          <div className="mt-6 pt-6 border-t border-white/5">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-white/5 rounded-xl border border-white/5">
+                <FileText className="text-slate-500" size={18} />
               </div>
-              <div className="text-2xl font-bold text-white mb-1">{recommended_method}</div>
-              <div className="text-sm text-slate-400">Method</div>
-            </div>
-
-            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <BarChart3 size={16} className="text-violet-400" />
-                <span className="text-xs text-slate-400 uppercase tracking-wider">Final Result</span>
-              </div>
-              <div className="text-2xl font-bold text-white mb-1">{recommended_value}%</div>
-              <div className={`text-sm ${getStatusConfig(recommended_value).color} font-semibold`}>
-                {getStatusConfig(recommended_value).label}
+              <div>
+                <span className="text-[9px] font-black tracking-[0.2em] text-slate-600 uppercase block mb-2">Technical Rationale Log</span>
+                <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-slate-700 pl-6 py-1">
+                  "{rationale}"
+                </p>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield size={16} className="text-green-400" />
-                <span className="text-xs text-slate-400 uppercase tracking-wider">Confidence</span>
+        {/* Right Column - Correction Matrix & Degradation Flux */}
+        <div className="w-full space-y-6">
+          {/* Correction Matrix */}
+          <div className="p-6 rounded-2xl border border-white/5 bg-slate-900/40 backdrop-blur-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative">
+              <h3 className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase mb-6 flex items-center justify-between">
+                Correction Matrix
+                <Zap size={14} className="text-indigo-400 animate-pulse" />
+              </h3>
+
+              <div className="space-y-4">
+                {[
+                  { label: 'Lambda (RRF)', value: correction_factors.lambda, icon: 'λ', color: 'text-blue-400' },
+                  { label: 'Omega (MW)', value: correction_factors.omega, icon: 'ω', color: 'text-violet-400' },
+                  { label: 'S-Stoichiometry', value: correction_factors.stoichiometric_factor, icon: 'Σ', color: 'text-emerald-400' }
+                ].map((factor) => (
+                  <div key={factor.label} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all group/item">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center font-serif text-base ${factor.color}`}>{factor.icon}</div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{factor.label}</span>
+                    </div>
+                    <span className="text-lg font-mono font-black text-white">{factor.value}</span>
+                  </div>
+                ))}
               </div>
-              <div className="text-2xl font-bold text-white mb-1">{confidence_index}%</div>
-              <div className="text-sm text-slate-400">Statistical</div>
             </div>
+          </div>
 
-            <div className="p-6 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp size={16} className="text-orange-400" />
-                <span className="text-xs text-slate-400 uppercase tracking-wider">Degradation</span>
+          {/* Degradation Flux */}
+          <div className="p-6 rounded-2xl border border-white/5 bg-slate-900/40 backdrop-blur-2xl flex flex-col justify-between group">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Degradation Flux</span>
+                <Activity size={14} className="text-emerald-400 animate-pulse" />
               </div>
-              <div className="text-2xl font-bold text-white mb-1">{degradation_level}%</div>
-              <div className="text-sm text-slate-400">Level</div>
+              <div className="text-4xl font-black text-white mb-4 group-hover:scale-105 transition-transform duration-500 origin-left">
+                {degradation_level.toFixed(1)}<span className="text-lg text-slate-500 ml-1">%</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-[9px] font-bold text-slate-600 uppercase">
+                <span>Depth Analysis</span>
+                <span>{degradation_level > 15 ? 'Critical' : 'Nominal'}</span>
+              </div>
+              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden p-[2px]">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(degradation_level * 2, 100)}%` }}
+                  className={`h-full rounded-full bg-gradient-to-r ${degradation_level > 20 ? 'from-orange-500 to-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'from-blue-500 to-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}
+                />
+              </div>
             </div>
           </div>
         </div>
       </motion.div>
+
+      {/* ML Anomaly Detection Banner */}
+      <MLAnomaly prediction={results.ml_prediction} />
+
+      {/* Bayesian Analysis Banner */}
+      <BayesianAnalysis results={mb_results} />
 
       {/* Navigation Tabs */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2">
@@ -925,54 +1022,202 @@ function Results({ results, inputs }) {
                 const config = getStatusConfig(value || 0);
 
                 return (
-                  <div
+                  <motion.div
                     key={key}
-                    className={`relative overflow-hidden rounded-xl border backdrop-blur-sm ${isRecommended
-                      ? 'border-blue-500/50 bg-blue-500/10'
-                      : 'border-slate-800/50 bg-slate-900/50'
+                    whileHover={{ y: -5 }}
+                    className={`relative overflow-hidden rounded-2xl border transition-all duration-500 ${isRecommended
+                      ? 'bg-blue-600/10 border-blue-500/40 shadow-lg shadow-blue-500/10'
+                      : 'bg-white/5 border-white/5 hover:border-white/10'
                       }`}
                   >
                     {isRecommended && (
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-violet-500" />
+                      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
                     )}
 
-                    <div className="p-5">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-slate-300">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <span className={`text-[10px] font-black tracking-widest ${isRecommended ? 'text-blue-400' : 'text-slate-500'} uppercase`}>
                           {key.toUpperCase().replace('_', '-')}
-                        </h3>
-                        {isRecommended && (
-                          <div className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
-                            SELECTED
-                          </div>
-                        )}
+                        </span>
+                        <div className={`w-1.5 h-1.5 rounded-full ${config.color.replace('text', 'bg')} animate-pulse`} />
                       </div>
-
-                      <div className={`text-3xl font-bold mb-2 ${value === null ? 'text-slate-600' : config.color}`}>
-                        {value === null ? 'N/A' : `${value}%`}
-                      </div>
-
-                      {/* Confidence Interval Bar for LK-IMB and CIMB */}
-                      {(key === 'lk_imb' || key === 'cimb') && value !== null && (
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs text-slate-500 mb-1">
-                            <span>{key === 'lk_imb' ? mb_results.lk_imb_lower_ci : mb_results.cimb_lower_ci}%</span>
-                            <span>{key === 'lk_imb' ? mb_results.lk_imb_upper_ci : mb_results.cimb_upper_ci}%</span>
-                          </div>
-                          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${key === 'lk_imb' ? 'bg-green-500' : 'bg-cyan-500'}`}
-                              style={{ width: '100%' }}
-                            />
-                          </div>
-                          <div className="text-xs text-slate-500 mt-1 text-center">95% CI</div>
+                      <div className="flex flex-col gap-1 mt-6 mb-6">
+                        <div className="text-3xl font-black text-white font-mono tracking-tighter">
+                          {value ? value.toFixed(2) : '0.00'}<span className="text-sm text-slate-500 ml-0.5">%</span>
                         </div>
-                      )}
+                        <div className={`text-[9px] font-black tracking-widest uppercase ${config.color}`}>
+                          {config.label}
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-600 uppercase">Confidence</span>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {isRecommended ? 'MAX-RES' : 'NOMINAL'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
+
+            {/* Hybrid Detection Analysis */}
+            {results.hybrid_detection && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="relative overflow-hidden rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-900/20 to-slate-900/50 backdrop-blur-xl p-8"
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/10 to-transparent blur-3xl" />
+
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                      <Zap className="text-orange-400" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Hybrid Detection Analysis</h3>
+                      <p className="text-sm text-slate-400">Multi-Detector Degradant Coverage</p>
+                    </div>
+                  </div>
+
+                  {/* Detection Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                      <div className="text-sm text-slate-400 mb-2">Detection Method</div>
+                      <div className="text-xl font-bold text-orange-400 font-mono">
+                        {results.hybrid_detection.detection_sources}
+                      </div>
+                    </div>
+                    <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                      <div className="text-sm text-slate-400 mb-2">Coverage</div>
+                      <div className="text-xl font-bold text-green-400">
+                        {results.hybrid_detection.detection_coverage_pct}%
+                      </div>
+                    </div>
+                    <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+                      <div className="text-sm text-slate-400 mb-2">Composite RRF</div>
+                      <div className="text-xl font-bold text-cyan-400">
+                        {results.hybrid_detection.composite_rrf}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Method Completeness */}
+                  <div className="p-6 bg-slate-800/50 rounded-xl border border-slate-700/50 mb-6">
+                    <h4 className="text-sm font-semibold text-slate-300 mb-4">Method Completeness: {results.hybrid_detection.method_completeness.completeness_pct}%</h4>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        {
+                          label: 'Chromophores',
+                          value: results.hybrid_detection.method_completeness.chromophore_coverage,
+                          icon: '🌈'
+                        },
+                        {
+                          label: 'Non-UV Active',
+                          value: results.hybrid_detection.method_completeness.non_uv_coverage,
+                          icon: '🔍'
+                        },
+                        {
+                          label: 'Volatiles',
+                          value: results.hybrid_detection.method_completeness.volatile_coverage,
+                          icon: '💨'
+                        },
+                        {
+                          label: 'Structure ID',
+                          value: results.hybrid_detection.method_completeness.structural_confirmation,
+                          icon: '🧬'
+                        }
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-2">
+                          <span className="text-2xl">{item.icon}</span>
+                          <div className="flex-1">
+                            <div className="text-xs text-slate-500">{item.label}</div>
+                            <div className={`text-sm font-bold ${item.value ? 'text-green-400' : 'text-red-400'}`}>
+                              {item.value ? '✓ Covered' : '✗ Missing'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* UV-Silent Analysis */}
+                  {results.hybrid_detection.uv_silent_analysis && results.hybrid_detection.uv_silent_analysis.uv_silent_detected && (
+                    <div className="p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-xl mb-6">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="text-yellow-400 flex-shrink-0 mt-1" size={20} />
+                        <div>
+                          <h4 className="text-md font-bold text-yellow-400 mb-2">UV-Silent Degradants Detected</h4>
+                          <p className="text-sm text-slate-300 mb-2">
+                            {results.hybrid_detection.uv_silent_analysis.uv_silent_degradants_pct}% of degradants lack UV chromophores
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            Impact: {results.hybrid_detection.uv_silent_analysis.impact_on_mb}
+                          </p>
+                          <p className="text-xs text-yellow-300 mt-2 font-semibold">
+                            ➜ {results.hybrid_detection.uv_silent_analysis.recommendation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Volatile Loss Analysis */}
+                  {results.hybrid_detection.volatile_analysis && results.hybrid_detection.volatile_analysis.volatile_loss_detected && (
+                    <div className="p-6 bg-orange-500/10 border border-orange-500/20 rounded-xl mb-6">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="text-orange-400 flex-shrink-0 mt-1" size={20} />
+                        <div>
+                          <h4 className="text-md font-bold text-orange-400 mb-2">Volatile Loss Detected</h4>
+                          <p className="text-sm text-slate-300 mb-2">
+                            {results.hybrid_detection.volatile_analysis.volatile_loss_pct}% volatile degradation products
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            Severity: {results.hybrid_detection.volatile_analysis.severity}
+                          </p>
+                          <p className="text-xs text-orange-300 mt-2 font-semibold">
+                            ➜ {results.hybrid_detection.volatile_analysis.recommendation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recommendations */}
+                  {results.hybrid_detection.method_completeness.recommendations &&
+                    results.hybrid_detection.method_completeness.recommendations.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-slate-300">Recommendations:</h4>
+                        {results.hybrid_detection.method_completeness.recommendations.map((rec, idx) => {
+                          const priorityColors = {
+                            'HIGH': 'red',
+                            'MODERATE': 'yellow',
+                            'INFO': 'blue'
+                          };
+                          const color = priorityColors[rec.priority] || 'slate';
+
+                          return (
+                            <div key={idx} className={`p-4 bg-${color}-500/10 border border-${color}-500/20 rounded-lg`}>
+                              <div className="flex items-start gap-3">
+                                <span className={`px-2 py-1 text-xs font-bold rounded bg-${color}-500/20 text-${color}-400`}>
+                                  {rec.priority}
+                                </span>
+                                <div className="flex-1">
+                                  <p className="text-sm text-white font-medium mb-1">{rec.message}</p>
+                                  <p className="text-xs text-slate-400">{rec.benefit}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                </div>
+              </motion.div>
+            )}
 
             {/* Statistical Analysis Sections */}
             {
@@ -1224,7 +1469,7 @@ function Results({ results, inputs }) {
           </motion.div>
         )}
       </motion.div>
-    </motion.div>
+    </motion.div >
   );
 }
 

@@ -3,10 +3,94 @@
 @tailwind utilities;
 
 @layer base {
+
+  /* ✨ Hackathon-Winning Typography System ✨ */
+  :root {
+    --font-display: 'Satoshi', -apple-system, sans-serif;
+    --font-ui: 'Geist Sans', 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  }
+
   body {
     @apply bg-slate-950 text-white antialiased;
+    font-family: var(--font-body);
+    font-weight: 400;
+    letter-spacing: -0.014em;
+    line-height: 1.65;
+    /* font-feature-settings: 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1; */
   }
-  
+
+  /* Premium Typography Hierarchy */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    /* font-feature-settings: 'ss01' 1, 'ss02' 1; */
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-black;
+    letter-spacing: -0.045em;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold;
+    letter-spacing: -0.04em;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold;
+  }
+
+  /* Modern UI Typography */
+  button,
+  .btn {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    /* font-feature-settings: 'ss01'; */
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: var(--font-body);
+    letter-spacing: -0.011em;
+  }
+
+  /* Data & Code */
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--font-mono);
+    letter-spacing: -0.005em;
+    /* font-feature-settings: 'liga' 0; */
+  }
+
+  /* Labels & Captions */
+  label,
+  caption,
+  .text-label {
+    font-family: var(--font-ui);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
   * {
     @apply border-slate-800;
   }
@@ -16,11 +100,11 @@
   .text-gradient {
     @apply bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent;
   }
-  
+
   .glass {
     @apply bg-slate-900/50 backdrop-blur-xl border border-slate-800/50;
   }
-  
+
   .glass-hover {
     @apply hover:bg-slate-900/70 transition-all duration-300;
   }
@@ -50,6 +134,7 @@
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
@@ -57,11 +142,14 @@
 
 .animate-shimmer {
   animation: shimmer 2s infinite;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(59, 130, 246, 0.1) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(59, 130, 246, 0.1) 50%,
+      transparent 100%);
   background-size: 1000px 100%;
+}
+
+.shelf-glow {
+  box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.3);
+  @apply bg-blue-600/10 border-blue-500/50;
 }

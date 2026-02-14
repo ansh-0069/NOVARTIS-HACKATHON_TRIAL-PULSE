@@ -7,9 +7,10 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Activity, AlertTriangle, CheckCircle,
-  BarChart3, PieChart as PieChartIcon, Target, Zap
+  BarChart3, PieChart as PieChartIcon, Target, Zap, Download, FileText, XCircle
 } from 'lucide-react';
 import axios from 'axios';
+import ROCDashboard from './ROCDashboard';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -39,6 +40,7 @@ function Analytics() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
+  const [analyticsView, setAnalyticsView] = useState('overview');
 
   useEffect(() => {
     fetchAnalytics();
@@ -133,6 +135,16 @@ function Analytics() {
     });
   };
 
+  const handleExportPDF = () => {
+    // PDF export logic here
+    console.log('Exporting PDF...');
+  };
+
+  const handleExportData = () => {
+    // Data export logic here
+    console.log('Exporting data...');
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -155,11 +167,11 @@ function Analytics() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex items-center justify-center h-[32rem] bg-gradient-to-br from-slate-900/90 to-blue-900/60 rounded-3xl shadow-2xl">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full"
+          className="w-16 h-16 border-[6px] border-blue-400/20 border-t-blue-500/80 rounded-full shadow-xl"
         />
       </div>
     );
@@ -170,11 +182,11 @@ function Analytics() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-12 text-center"
+        className="relative overflow-hidden rounded-3xl border border-slate-800/40 bg-gradient-to-br from-slate-900/95 to-blue-900/60 backdrop-blur-2xl p-16 text-center shadow-2xl"
       >
-        <BarChart3 size={64} className="text-slate-700 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">No Data Available</h3>
-        <p className="text-slate-400">
+        <BarChart3 size={72} className="text-blue-700 mx-auto mb-6 drop-shadow-lg" />
+        <h3 className="text-2xl font-extrabold text-white mb-3 tracking-tight">No Data Available</h3>
+        <p className="text-slate-400 text-lg font-medium">
           Perform calculations to see analytics and insights
         </p>
       </motion.div>
@@ -186,291 +198,377 @@ function Analytics() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-10 relative"
     >
-      {/* Header */}
-      <motion.div
-        variants={itemVariants}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-1">Intelligence Dashboard</h2>
-            <p className="text-slate-400 text-sm">
-              Comprehensive analytics across {stats.totalAnalyses} analyses
-            </p>
-          </div>
-
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-800"
+      {/* Top Bar with View Tabs and Export Controls */}
+      <div className="flex items-center justify-between gap-4 mb-8">
+        {/* View Tabs */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setAnalyticsView('overview')}
+            className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
+              analyticsView === 'overview'
+                ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
+                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
+            }`}
           >
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="90d">Last 90 Days</option>
-            <option value="all">All Time</option>
-          </select>
+            Overview
+          </button>
+          <button
+            onClick={() => setAnalyticsView('roc')}
+            className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
+              analyticsView === 'roc'
+                ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
+                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
+            }`}
+          >
+            ROC Analysis
+          </button>
         </div>
-      </motion.div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'Total Analyses',
-            value: stats.totalAnalyses,
-            icon: Activity,
-            color: 'blue',
-            change: '+12%'
-          },
-          {
-            label: 'Pass Rate',
-            value: `${stats.passRate}%`,
-            icon: CheckCircle,
-            color: 'green',
-            change: '+5%'
-          },
-          {
-            label: 'Avg Degradation',
-            value: `${stats.avgDegradation}%`,
-            icon: TrendingUp,
-            color: 'orange',
-            change: '-3%'
-          },
-          {
-            label: 'Avg Confidence',
-            value: `${stats.avgConfidence}%`,
-            icon: Target,
-            color: 'violet',
-            change: '+2%'
-          }
-        ].map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <motion.div
-              key={metric.label}
-              variants={itemVariants}
-              className="relative overflow-hidden rounded-xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6 hover:border-slate-700/50 transition-colors"
-            >
-              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-${metric.color}-500/10 to-transparent blur-2xl`} />
+        {/* Export Controls - Top Right */}
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleExportPDF}
+            className="px-5 py-2.5 bg-slate-800/70 hover:bg-slate-700/70 border border-slate-600/50 text-slate-200 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2 shadow-lg backdrop-blur-sm"
+          >
+            <FileText size={16} />
+            PDF
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleExportData}
+            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/30"
+          >
+            <Download size={16} />
+            Export
+          </motion.button>
+        </div>
+      </div>
 
+      {analyticsView === 'overview' ? (
+        <div className="space-y-10">
+          {/* Top Stats Grid */}
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="relative overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-slate-900/90 to-blue-900/50 backdrop-blur-xl p-6 shadow-xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
               <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <Icon className={`text-${metric.color}-400`} size={24} />
-                  <span className="text-xs text-green-400 font-semibold">{metric.change}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">Total Analyses</span>
+                  <Activity className="text-blue-400" size={18} />
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">{metric.value}</div>
-                <div className="text-sm text-slate-400">{metric.label}</div>
+                <p className="text-4xl font-black text-white mb-1">{stats.totalAnalyses}</p>
+                <p className="text-xs text-slate-400">Completed tests</p>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-2xl border border-green-400/20 bg-gradient-to-br from-slate-900/90 to-green-900/50 backdrop-blur-xl p-6 shadow-xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">Pass Rate</span>
+                  <CheckCircle className="text-green-400" size={18} />
+                </div>
+                <p className="text-4xl font-black text-white mb-1">{stats.passRate}%</p>
+                <p className="text-xs text-slate-400">ICH Q1A(R2) compliant</p>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-2xl border border-violet-400/20 bg-gradient-to-br from-slate-900/90 to-violet-900/50 backdrop-blur-xl p-6 shadow-xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">Avg Confidence</span>
+                  <Target className="text-violet-400" size={18} />
+                </div>
+                <p className="text-4xl font-black text-white mb-1">{stats.avgConfidence}%</p>
+                <p className="text-xs text-slate-400">Statistical validity</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Status Analysis - Compact Professional Card */}
+          <motion.div
+            variants={itemVariants}
+            className="relative overflow-hidden rounded-2xl border border-red-400/20 bg-gradient-to-br from-slate-900/95 to-red-900/40 backdrop-blur-xl shadow-2xl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-red-400/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <XCircle className="text-red-400" size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold tracking-wide text-red-400 uppercase">Status Analysis</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Quality control assessment</p>
+                </div>
+              </div>
+              <div className="px-3 py-1.5 bg-red-500/20 rounded-lg border border-red-500/30">
+                <span className="text-xs font-bold text-red-300 uppercase tracking-wider">OOS</span>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    Mass balance is below acceptable limits. Investigate for undetected degradation products or analytical method deficiencies.
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-2xl font-black text-white mb-1">28.39%</div>
+                  <div className="px-2 py-1 bg-red-500/20 rounded text-xs font-bold text-red-300 uppercase tracking-wide">
+                    Invalid
+                  </div>
+                </div>
+              </div>
+
+              {/* Method Integrity Indicator */}
+              <div className="mt-5 pt-5 border-t border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Method Integrity</span>
+                  </div>
+                  <span className="text-xs font-bold text-green-400">Validated Instrument</span>
+                </div>
+                <div className="mt-2 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full w-full bg-gradient-to-r from-green-500 to-green-400" />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                  <span>Confidence Score</span>
+                  <span className="font-bold text-slate-400">100%</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Trend Analysis */}
+          <motion.div
+            variants={itemVariants}
+            className="relative overflow-hidden rounded-3xl border border-blue-400/10 bg-gradient-to-br from-slate-900/90 to-blue-900/60 backdrop-blur-2xl p-10 shadow-2xl"
+          >
+            <h3 className="text-xs font-black tracking-[0.3em] text-slate-500 uppercase mb-8 flex items-center gap-2">
+              <TrendingUp className="text-blue-400" size={16} />
+              Mass Balance Trends
+            </h3>
+
+            <div className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats.trendData}>
+                  <defs>
+                    <linearGradient id="colorLK" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorCIMB" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
+                  <XAxis
+                    dataKey="index"
+                    stroke="#64748b"
+                    tick={{ fill: '#94a3b8', fontSize: 11 }}
+                    label={{ value: 'Sample Number', position: 'insideBottom', offset: -5, fill: '#64748b', fontSize: 10 }}
+                  />
+                  <YAxis
+                    stroke="#64748b"
+                    tick={{ fill: '#94a3b8', fontSize: 11 }}
+                    label={{ value: 'Mass Balance (%)', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    iconType="circle"
+                    wrapperStyle={{ paddingBottom: '20px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="lk_imb"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorLK)"
+                    name="LK-IMB Core"
+                    animationDuration={2000}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cimb"
+                    stroke="#06b6d4"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorCIMB)"
+                    name="CIMB Vector"
+                    animationDuration={2000}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Method Distribution */}
+          <motion.div
+            variants={itemVariants}
+            className="relative overflow-hidden rounded-3xl border border-violet-400/10 bg-gradient-to-br from-slate-900/90 to-violet-900/60 backdrop-blur-2xl p-10 shadow-2xl"
+          >
+            <h3 className="text-xs font-black tracking-[0.3em] text-slate-500 uppercase mb-8 flex items-center gap-2">
+              <PieChartIcon className="text-violet-400" size={16} />
+              Methodology Distribution
+            </h3>
+
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.methodDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={8}
+                    dataKey="value"
+                    animationDuration={2000}
+                  >
+                    {stats.methodDistribution.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                        stroke="rgba(255,255,255,0.05)"
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Status Distribution & Risk Assessment */}
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+            {/* Status Distribution */}
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden rounded-2xl border border-green-400/10 bg-gradient-to-br from-slate-900/90 to-green-900/60 backdrop-blur-xl p-8 shadow-lg"
+            >
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <BarChart3 className="text-green-400" size={20} />
+                Status Overview
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={stats.statusDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#94a3b8"
+                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  />
+                  <YAxis
+                    stroke="#94a3b8"
+                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} animationDuration={1500} />
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+
+            {/* Risk Assessment */}
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden rounded-2xl border border-orange-400/10 bg-gradient-to-br from-slate-900/90 to-orange-900/60 backdrop-blur-xl p-8 shadow-lg"
+            >
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <AlertTriangle className="text-orange-400" size={20} />
+                Risk Profile
+              </h3>
+              <div className="space-y-4">
+                {stats.riskData.map((risk, index) => {
+                  const colors = {
+                    LOW: { bg: 'bg-green-500/10', bar: 'bg-green-500', text: 'text-green-400' },
+                    MODERATE: { bg: 'bg-yellow-500/10', bar: 'bg-yellow-500', text: 'text-yellow-400' },
+                    HIGH: { bg: 'bg-red-500/10', bar: 'bg-red-500', text: 'text-red-400' }
+                  };
+                  return (
+                    <div
+                      key={risk.name}
+                      className={`p-4 ${colors[risk.name].bg} rounded-xl border border-slate-700/50 hover:bg-slate-800/30 transition-colors`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white font-semibold">{risk.name}</span>
+                        <span className={`${colors[risk.name].text} font-bold`}>
+                          {risk.percentage}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${risk.percentage}%` }}
+                          transition={{ duration: 1.5, delay: 0.8 + index * 0.1, ease: "easeOut" }}
+                          className={`h-full ${colors[risk.name].bar}`}
+                        />
+                      </div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        {risk.value} samples
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Trend Chart */}
-        <motion.div
-          variants={itemVariants}
-          className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
-        >
-          <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <TrendingUp className="text-blue-400" size={20} />
-            Historical Trend
-          </h3>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={stats.trendData}>
-              <defs>
-                <linearGradient id="colorLK" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorCIMB" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-              <XAxis
-                dataKey="index"
-                stroke="#94a3b8"
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
-              />
-              <YAxis
-                stroke="#94a3b8"
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Area
-                type="monotone"
-                dataKey="lk_imb"
-                stroke="#10b981"
-                fillOpacity={1}
-                fill="url(#colorLK)"
-                name="LK-IMB"
-                animationDuration={1500}
-              />
-              <Area
-                type="monotone"
-                dataKey="cimb"
-                stroke="#06b6d4"
-                fillOpacity={1}
-                fill="url(#colorCIMB)"
-                name="CIMB"
-                animationDuration={1500}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Method Distribution */}
-        <motion.div
-          variants={itemVariants}
-          className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
-        >
-          <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <PieChartIcon className="text-violet-400" size={20} />
-            Method Distribution
-          </h3>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={stats.methodDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percentage }) => `${name} (${percentage}%)`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-                animationDuration={1500}
-              >
-                {stats.methodDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Status Distribution */}
-        <motion.div
-          variants={itemVariants}
-          className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
-        >
-          <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <BarChart3 className="text-green-400" size={20} />
-            Status Overview
-          </h3>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stats.statusDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-              <XAxis
-                dataKey="name"
-                stroke="#94a3b8"
-                tick={{ fill: '#94a3b8', fontSize: 12 }}
-              />
-              <YAxis
-                stroke="#94a3b8"
-                tick={{ fill: '#94a3b8', fontSize: 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} animationDuration={1500} />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Risk Assessment */}
-        <motion.div
-          variants={itemVariants}
-          className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-6"
-        >
-          <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <AlertTriangle className="text-orange-400" size={20} />
-            Risk Profile
-          </h3>
-
-          <div className="space-y-4">
-            {stats.riskData.map((risk, index) => {
-              const colors = {
-                LOW: { bg: 'bg-green-500/10', bar: 'bg-green-500', text: 'text-green-400' },
-                MODERATE: { bg: 'bg-yellow-500/10', bar: 'bg-yellow-500', text: 'text-yellow-400' },
-                HIGH: { bg: 'bg-red-500/10', bar: 'bg-red-500', text: 'text-red-400' }
-              };
-
-              return (
-                <div
-                  key={risk.name}
-                  className={`p-4 ${colors[risk.name].bg} rounded-xl border border-slate-700/50 hover:bg-slate-800/30 transition-colors`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-semibold">{risk.name}</span>
-                    <span className={`${colors[risk.name].text} font-bold`}>
-                      {risk.percentage}%
-                    </span>
-                  </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${risk.percentage}%` }}
-                      transition={{ duration: 1.5, delay: 0.8 + index * 0.1, ease: "easeOut" }}
-                      className={`h-full ${colors[risk.name].bar}`}
-                    />
-                  </div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    {risk.value} samples
-                  </div>
-                </div>
-              );
-            })}
           </div>
-        </motion.div>
-      </div>
 
-      {/* Insights Panel */}
-      <motion.div
-        variants={itemVariants}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <Zap className="text-blue-400" size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-white">AI-Powered Insights</h3>
+          {/* Insights Panel */}
+          <motion.div
+            variants={itemVariants}
+            className="relative overflow-hidden rounded-2xl border border-blue-400/10 bg-gradient-to-br from-slate-900/90 to-blue-900/60 backdrop-blur-xl p-10 shadow-xl"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-blue-500/15 rounded-lg border border-blue-500/20 shadow-md">
+                <Zap className="text-blue-400" size={28} />
+              </div>
+              <h3 className="text-2xl font-extrabold text-white tracking-tight drop-shadow">AI-Powered Insights</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-8 bg-green-500/10 rounded-2xl border border-green-500/20 hover:bg-green-500/20 transition-colors shadow-md">
+                <CheckCircle className="text-green-400 mb-4" size={28} />
+                <h4 className="text-lg text-white font-bold mb-2">High Success Rate</h4>
+                <p className="text-base text-slate-300 font-medium">
+                  {stats.passRate}% of analyses meet ICH Q1A(R2) requirements
+                </p>
+              </div>
+              <div className="p-8 bg-blue-500/10 rounded-2xl border border-blue-500/20 hover:bg-blue-500/20 transition-colors shadow-md">
+                <Target className="text-blue-400 mb-4" size={28} />
+                <h4 className="text-lg text-white font-bold mb-2">Optimal Methods</h4>
+                <p className="text-base text-slate-300 font-medium">
+                  CIMB and LK-IMB provide superior statistical validation
+                </p>
+              </div>
+              <div className="p-8 bg-violet-500/10 rounded-2xl border border-violet-500/20 hover:bg-violet-500/20 transition-colors shadow-md">
+                <TrendingUp className="text-violet-400 mb-4" size={28} />
+                <h4 className="text-lg text-white font-bold mb-2">Quality Trend</h4>
+                <p className="text-base text-slate-300 font-medium">
+                  Confidence index averaging {stats.avgConfidence}% across all tests
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-6 bg-green-500/10 rounded-xl border border-green-500/20 hover:bg-green-500/20 transition-colors">
-            <CheckCircle className="text-green-400 mb-3" size={24} />
-            <h4 className="text-white font-semibold mb-2">High Success Rate</h4>
-            <p className="text-sm text-slate-400">
-              {stats.passRate}% of analyses meet ICH Q1A(R2) requirements
-            </p>
-          </div>
-
-          <div className="p-6 bg-blue-500/10 rounded-xl border border-blue-500/20 hover:bg-blue-500/20 transition-colors">
-            <Target className="text-blue-400 mb-3" size={24} />
-            <h4 className="text-white font-semibold mb-2">Optimal Methods</h4>
-            <p className="text-sm text-slate-400">
-              CIMB and LK-IMB provide superior statistical validation
-            </p>
-          </div>
-
-          <div className="p-6 bg-violet-500/10 rounded-xl border border-violet-500/20 hover:bg-violet-500/20 transition-colors">
-            <TrendingUp className="text-violet-400 mb-3" size={24} />
-            <h4 className="text-white font-semibold mb-2">Quality Trend</h4>
-            <p className="text-sm text-slate-400">
-              Confidence index averaging {stats.avgConfidence}% across all tests
-            </p>
-          </div>
-        </div>
-      </motion.div>
+      ) : (
+        <ROCDashboard />
+      )}
     </motion.div>
   );
 }

@@ -1,9 +1,8 @@
-<<<<<<< HEAD
-# Frontend - Mass Balance AI
+# Frontend - Mass Balance
 
 ## 🎨 React Frontend Application
 
-This is the frontend application for Mass Balance AI, built with React, Vite, and Tailwind CSS.
+This is the frontend application for Mass Balance, built with React, Vite, and Tailwind CSS.
 
 ---
 
@@ -54,7 +53,7 @@ frontend/
 ├── package.json
 ├── vite.config.js
 ├── tailwind.config.js
-└── postcss.config.js
+├── postcss.config.js
 ```
 
 ---
@@ -98,8 +97,8 @@ Primary:     blue-500 (#3b82f6)
 Secondary:   violet-500 (#8b5cf6)
 Success:     green-500 (#10b981)
 Warning:     yellow-500 (#f59e0b)
+Indicator:   cyan-500 (#06b6d4)
 Danger:      red-500 (#ef4444)
-Accent:      cyan-500 (#06b6d4)
 ```
 
 ### Typography
@@ -278,21 +277,3 @@ See [Backend Documentation](../backend/README.md) for API endpoints.
 ---
 
 **Frontend built with React, Vite, and modern web technologies** 🚀
-=======
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
->>>>>>> 83715c6c148d6cb345fd1ccb6fe45e532c71708f

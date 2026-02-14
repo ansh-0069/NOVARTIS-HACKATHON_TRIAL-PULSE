@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import Results from './Results';
+import { generatePDF } from '../utils/pdfGenerator';
 import {
   Beaker, Save, RotateCcw, Sparkles, AlertCircle,
-  Info, TrendingUp, Zap, ChevronRight, Download, AlertTriangle
+  Info, TrendingUp, Zap, ChevronRight, Download, AlertTriangle, FileText
 } from 'lucide-react';
+import HybridDetection from './HybridDetection';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -58,6 +60,14 @@ function Calculator() {
   const [calculating, setCalculating] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState(false);
   const [existingTests, setExistingTests] = useState([]);
+  const [hybridConfig, setHybridConfig] = useState({
+    detection_method: 'UV',
+    uv_rrf: 1.0,
+    elsd_rrf: null,
+    ms_intensity: null,
+    gc_ms_detected: false,
+    gc_ms_volatiles: 0
+  });
 
   // Check for duplicate sample IDs
   useEffect(() => {
@@ -121,7 +131,10 @@ function Calculator() {
   const handleCalculate = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/calculate`, inputs);
+      const response = await axios.post(`${API_URL}/calculate`, {
+        ...inputs,
+        ...hybridConfig
+      });
       setResults(response.data);
       setCalculating(false);
     } catch (error) {
@@ -169,7 +182,6 @@ function Calculator() {
         { responseType: 'blob' }
       );
 
-      // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -181,6 +193,21 @@ function Calculator() {
     } catch (error) {
       console.error('Download error:', error);
       alert('Failed to generate Excel report');
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (results) {
+      generatePDF({
+        mb_results: results.results,
+        correction_factors: results.correction_factors,
+        recommended_method: results.recommended_method,
+        recommended_value: results.recommended_value,
+        status: results.status,
+        diagnostic_message: results.diagnostic_message,
+        rationale: results.rationale,
+        degradation_level: results.degradation_level
+      }, inputs);
     }
   };
 
@@ -306,6 +333,218 @@ function Calculator() {
         </div>
       </motion.div>
 
+
+
+      {/* Hybrid Detection Configuration */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.05 }}
+      >
+        <HybridDetection onConfigChange={setHybridConfig} />
+      </motion.div>
+
+      {/* Input Form */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
+      >
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500" />
+
+        <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+          <TrendingUp size={20} className="text-blue-400" />
+          Experimental Parameters
+        </h3>
+
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          {/* Main Parameters */}
+          <div className="xl:col-span-3 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {inputFields.map((field, index) => (
+                <motion.div
+                  key={field.name}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <label className="block group">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase group-hover:text-blue-400 transition-colors">
+                        {field.label}
+                      </span>
+                      <Tooltip content={field.tooltip}>
+                        <Info size={12} className="text-slate-600 hover:text-blue-400" />
+                      </Tooltip>
+                    </div>
+                    <div className="relative group/input">
+                      <input
+                        type="number"
+                        name={field.name}
+                        value={inputs[field.name]}
+                        onChange={handleInputChange}
+                        step={field.step}
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-white/5 rounded-xl text-white font-mono text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all hover:bg-slate-800/50 shadow-inner"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 h-[2px] bg-blue-500 transform scale-x-0 group-focus-within/input:scale-x-100 transition-transform duration-500" />
+                    </div>
+                  </label>
+                </motion.div>
+              ))}
+
+              {/* Stress Condition Select */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+              >
+                <label className="block group">
+                  <div className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 group-hover:text-blue-400 transition-colors">
+                    Stress Condition
+                  </div>
+                  <select
+                    name="stress_type"
+                    value={inputs.stress_type}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/5 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all hover:bg-slate-800/50 cursor-pointer appearance-none shadow-inner"
+                  >
+                    <option value="Acid">Acid Hydrolysis</option>
+                    <option value="Base">Base Hydrolysis</option>
+                    <option value="Oxidative">Oxidative</option>
+                    <option value="Photolytic">Photolytic</option>
+                    <option value="Thermal">Thermal</option>
+                  </select>
+                </label>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Sidebar Inputs (IDs, Analyst) */}
+          <div className="space-y-6 xl:border-l xl:border-white/5 xl:pl-8">
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 block">Sample Reference</span>
+                <input
+                  type="text"
+                  name="sample_id"
+                  value={inputs.sample_id}
+                  onChange={handleInputChange}
+                  placeholder="ID#"
+                  className={`w-full px-4 py-2 text-sm bg-slate-900/50 border rounded-lg text-white font-mono focus:outline-none transition-all ${duplicateWarning ? 'border-amber-500/40 text-amber-400' : 'border-white/5 focus:border-blue-500/50'
+                    }`}
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 block">Analyst Signature</span>
+                <input
+                  type="text"
+                  name="analyst_name"
+                  value={inputs.analyst_name}
+                  onChange={handleInputChange}
+                  placeholder="Name"
+                  className="w-full px-4 py-2 text-sm bg-slate-900/50 border border-white/5 rounded-lg text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                />
+              </label>
+
+              <div className="pt-4 border-t border-white/5">
+                <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase mb-2">
+                  <span>Instrument Status</span>
+                  <span className="text-emerald-500 animate-pulse flex items-center gap-1">
+                    <div className="w-1 h-1 bg-emerald-500 rounded-full" /> Ready
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-600 font-mono leading-relaxed">
+                  MODULE: CALC-ENGINE-V2<br />
+                  LATENCY: ~14ms<br />
+                  MODEL: ICH-STABILITY-X1
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 mt-12 pt-8 border-t border-white/5">
+          <button
+            onClick={() => handleCalculate(false)}
+            disabled={loading || autoCalculate}
+            className="flex-1 min-w-[200px] h-14 relative group overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(37,99,235,0.3)] hover:shadow-[0_0_40px_rgba(37,99,235,0.5)] transition-all disabled:opacity-50"
+          >
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="flex items-center justify-center gap-3">
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Zap size={18} />
+                  Initiate Analysis
+                </>
+              )}
+            </span>
+          </button>
+
+          {results && (
+            <>
+              <motion.button
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                onClick={handleSave}
+                className={`px-8 h-14 rounded-xl font-bold uppercase tracking-wider transition-all border ${saved ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                  }`}
+              >
+                <Save size={18} className="inline mr-2" />
+                {saved ? 'Secured' : 'Archive Data'}
+              </motion.button>
+
+              <motion.button
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                onClick={handleDownloadPDF}
+                className="px-8 h-14 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-xl font-bold uppercase tracking-wider hover:bg-blue-600/30 transition-all"
+              >
+                <FileText size={18} className="inline mr-2" />
+                PDF Report
+              </motion.button>
+
+              <motion.button
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                onClick={handleDownloadExcel}
+                className="px-8 h-14 bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 rounded-xl font-bold uppercase tracking-wider hover:bg-emerald-600/30 transition-all"
+              >
+                <Download size={18} className="inline mr-2" />
+                Excel Report
+              </motion.button>
+            </>
+          )}
+
+          <button
+            onClick={handleReset}
+            className="px-8 h-14 bg-white/5 border border-white/10 text-slate-500 hover:text-white rounded-xl font-bold uppercase tracking-wider transition-all"
+          >
+            <RotateCcw size={18} />
+          </button>
+        </div>
+
+        {/* Info Banner */}
+        {!autoCalculate && !results && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl"
+          >
+            <AlertCircle size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-300">
+              <strong>Tip:</strong> Enable <strong>Real-time</strong> mode for instant calculations as you type.
+              Results update automatically with statistical validation.
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
+
       {/* Duplicate Sample ID Warning */}
       {duplicateWarning && (
         <motion.div
@@ -376,231 +615,6 @@ function Calculator() {
           </div>
         </motion.div>
       )}
-
-      {/* Input Form */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="relative overflow-hidden rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-xl p-8"
-      >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500" />
-
-        <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-          <TrendingUp size={20} className="text-blue-400" />
-          Experimental Parameters
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {inputFields.map((field, index) => (
-            <motion.div
-              key={field.name}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.05 }}
-              className="group"
-            >
-              <label className="block mb-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
-                    {field.label}
-                  </span>
-                  <Tooltip content={field.tooltip}>
-                    <Info size={14} className="text-slate-500 hover:text-blue-400 transition-colors" />
-                  </Tooltip>
-                </div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    name={field.name}
-                    value={inputs[field.name]}
-                    onChange={handleInputChange}
-                    step={field.step}
-                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-sm hover:bg-slate-800/70"
-                  />
-                  {calculating && autoCalculate && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                    </div>
-                  )}
-                </div>
-              </label>
-            </motion.div>
-          ))}
-
-          {/* Stress Type Dropdown */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="group"
-          >
-            <label className="block mb-2">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
-                  Stress Condition
-                </span>
-                <Tooltip content="Type of forced degradation applied to the sample">
-                  <Info size={14} className="text-slate-500 hover:text-blue-400 transition-colors" />
-                </Tooltip>
-              </div>
-              <select
-                name="stress_type"
-                value={inputs.stress_type}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-sm hover:bg-slate-800/70 cursor-pointer"
-              >
-                <option value="Acid">Acid Hydrolysis</option>
-                <option value="Base">Base Hydrolysis</option>
-                <option value="Oxidative">Oxidative</option>
-                <option value="Photolytic">Photolytic</option>
-                <option value="Thermal">Thermal</option>
-              </select>
-            </label>
-          </motion.div>
-
-          {/* Sample ID */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <label className="block mb-2">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium text-slate-300 mb-2 block">
-                  Sample ID
-                </span>
-                {duplicateWarning && (
-                  <div className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs text-yellow-400">
-                    <AlertTriangle size={12} />
-                    <span>Duplicate</span>
-                  </div>
-                )}
-              </div>
-              <input
-                type="text"
-                name="sample_id"
-                value={inputs.sample_id}
-                onChange={handleInputChange}
-                placeholder="e.g., ABC-001"
-                className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all backdrop-blur-sm hover:bg-slate-800/70 ${duplicateWarning
-                  ? 'border-yellow-500/50 focus:ring-yellow-500/50 focus:border-yellow-500/50'
-                  : 'border-slate-700/50 focus:ring-blue-500/50 focus:border-blue-500/50'
-                  }`}
-              />
-            </label>
-          </motion.div>
-
-          {/* Analyst Name */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45 }}
-          >
-            <label className="block mb-2">
-              <span className="text-sm font-medium text-slate-300 mb-2 block">
-                Analyst Name
-              </span>
-              <input
-                type="text"
-                name="analyst_name"
-                value={inputs.analyst_name}
-                onChange={handleInputChange}
-                placeholder="Your name"
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-sm hover:bg-slate-800/70"
-              />
-            </label>
-          </motion.div>
-        </div>
-
-        {/* Action Buttons */}
-        <motion.div
-          className="flex gap-4 mt-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <button
-            onClick={() => handleCalculate(false)}
-            disabled={loading || autoCalculate}
-            className="flex-1 relative group overflow-hidden bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white px-6 py-4 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-violet-400 opacity-0 group-hover:opacity-20 transition-opacity" />
-            <span className="relative flex items-center justify-center gap-2">
-              {loading ? (
-                <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Sparkles size={20} />
-                  </motion.div>
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={20} />
-                  Calculate Mass Balance
-                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </span>
-          </button>
-
-          {results && (
-            <>
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={handleSave}
-                className={`px-6 py-4 rounded-xl font-semibold transition-all flex items-center gap-2 ${saved
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                  : 'bg-slate-800/50 text-slate-300 hover:bg-slate-800 border border-slate-700/50'
-                  }`}
-              >
-                <Save size={20} />
-                {saved ? 'Saved!' : 'Save'}
-              </motion.button>
-
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={handleDownloadExcel}
-                className="px-6 py-4 rounded-xl bg-green-600 hover:bg-green-500 text-white border border-green-500 font-semibold transition-all flex items-center gap-2 shadow-lg shadow-green-500/25 hover:shadow-green-500/40"
-              >
-                <Download size={20} />
-                Download Excel
-              </motion.button>
-            </>
-          )}
-
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            onClick={handleReset}
-            className="px-6 py-4 rounded-xl bg-slate-800/50 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50 font-semibold transition-all flex items-center gap-2"
-          >
-            <RotateCcw size={20} />
-            Reset
-          </motion.button>
-        </motion.div>
-
-        {/* Info Banner */}
-        {!autoCalculate && !results && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-6 flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl"
-          >
-            <AlertCircle size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-300">
-              <strong>Tip:</strong> Enable <strong>Real-time</strong> mode for instant calculations as you type.
-              Results update automatically with statistical validation.
-            </div>
-          </motion.div>
-        )}
-      </motion.div>
 
       {/* Results Component */}
       {results && <Results results={results} inputs={inputs} />}

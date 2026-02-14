@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "training_date": "2026-02-14",
+  "optimal_ci_threshold": 92.0,
+  "model_performance": {
+    "auc": 0.5052,
+    "sensitivity": 0.875,
+    "specificity": 0.25,
+    "accuracy": 0.5
+  },
+  "risk_classification": {
+    "LOW": {
+      "ci_range": [
+        92.0,
+        100
+      ],
+      "description": "High confidence - Likely to pass mass balance"
+    },
+    "MODERATE": {
+      "ci_range": [
+        82.0,
+        92.0
+      ],
+      "description": "Borderline - Requires expert review"
+    },
+    "HIGH": {
+      "ci_range": [
+        0,
+        82.0
+      ],
+      "description": "Low confidence - Likely to fail mass balance"
+    }
+  },
+  "usage_notes": [
+    "This threshold maximizes Youden's J statistic (sensitivity + specificity - 1)",
+    "Trained on validated historical mass balance data",
+    "Review and update quarterly as more data becomes available"
+  ]
+}

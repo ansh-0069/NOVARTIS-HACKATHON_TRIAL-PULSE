@@ -1,0 +1,156 @@
+[
+    {
+        "mass_balance": 99.5,
+        "degradation": 5.2,
+        "recovery": 98.4,
+        "purity": 94.3,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 98.2,
+        "degradation": 10.1,
+        "recovery": 99.1,
+        "purity": 89.0,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 100.1,
+        "degradation": 2.3,
+        "recovery": 99.8,
+        "purity": 97.5,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 95.5,
+        "degradation": 15.4,
+        "recovery": 96.2,
+        "purity": 80.1,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 99.8,
+        "degradation": 0.5,
+        "recovery": 99.9,
+        "purity": 99.4,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 97.4,
+        "degradation": 8.8,
+        "recovery": 97.9,
+        "purity": 88.6,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 101.5,
+        "degradation": 1.2,
+        "recovery": 100.2,
+        "purity": 98.7,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 98.9,
+        "degradation": 4.5,
+        "recovery": 98.8,
+        "purity": 94.4,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 96.8,
+        "degradation": 12.3,
+        "recovery": 97.1,
+        "purity": 84.5,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 99.2,
+        "degradation": 6.7,
+        "recovery": 98.5,
+        "purity": 92.5,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 85.4,
+        "degradation": 5.0,
+        "recovery": 90.1,
+        "purity": 90.4,
+        "is_anomaly": 1
+    },
+    {
+        "mass_balance": 105.2,
+        "degradation": 3.2,
+        "recovery": 104.5,
+        "purity": 96.3,
+        "is_anomaly": 1
+    },
+    {
+        "mass_balance": 99.5,
+        "degradation": 20.5,
+        "recovery": 85.2,
+        "purity": 64.0,
+        "is_anomaly": 1
+    },
+    {
+        "mass_balance": 92.1,
+        "degradation": 2.1,
+        "recovery": 94.0,
+        "purity": 96.0,
+        "is_anomaly": 1
+    },
+    {
+        "mass_balance": 98.5,
+        "degradation": 0.1,
+        "recovery": 80.5,
+        "purity": 98.4,
+        "is_anomaly": 1
+    },
+    {
+        "mass_balance": 99.9,
+        "degradation": 5.5,
+        "recovery": 99.0,
+        "purity": 94.0,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 97.8,
+        "degradation": 9.2,
+        "recovery": 98.1,
+        "purity": 89.9,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 100.5,
+        "degradation": 1.8,
+        "recovery": 99.7,
+        "purity": 98.7,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 96.2,
+        "degradation": 14.1,
+        "recovery": 96.5,
+        "purity": 82.1,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 99.1,
+        "degradation": 3.8,
+        "recovery": 99.2,
+        "purity": 95.3,
+        "is_anomaly": 0
+    },
+    {
+        "mass_balance": 60.5,
+        "degradation": 10.0,
+        "recovery": 70.0,
+        "purity": 80.0,
+        "is_anomaly": 1
+    },
+    {
+        "mass_balance": 110.0,
+        "degradation": 5.0,
+        "recovery": 105.0,
+        "purity": 90.0,
+        "is_anomaly": 1
+    }
+]
