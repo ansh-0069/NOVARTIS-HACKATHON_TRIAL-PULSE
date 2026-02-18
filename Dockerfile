@@ -10,7 +10,7 @@ WORKDIR /app
 # LAYER 1: Python Dependencies (Cached)
 COPY excel-service/requirements.txt ./excel-service/
 WORKDIR /app/excel-service
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt --break-system-packages
 
 # LAYER 2: Node.js Dependencies (Cached)
 WORKDIR /app/backend
