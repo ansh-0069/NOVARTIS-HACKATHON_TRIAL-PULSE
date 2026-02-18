@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, Zap, AlertTriangle, Info, Beaker, Brain } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const GNNAnalysis = ({ smiles, stressType }) => {
     const [loading, setLoading] = useState(false);
     const [gnnData, setGnnData] = useState(null);
@@ -17,7 +19,7 @@ const GNNAnalysis = ({ smiles, stressType }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:5000/api/ml/gnn-predict', {
+            const response = await fetch(`${API_BASE}/api/ml/gnn-predict`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ smiles })

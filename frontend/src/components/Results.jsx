@@ -14,7 +14,8 @@ import axios from 'axios';
 import MLAnomaly from './MLAnomaly';
 import BayesianAnalysis from './BayesianAnalysis';
 import { generatePDF } from '../utils/pdfGenerator';
-const API_URL = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = `${API_BASE}/api`;
 
 // Custom Chart Tooltip
 const CustomTooltip = ({ active, payload, label }) => {

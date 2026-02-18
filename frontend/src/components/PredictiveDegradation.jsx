@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import GNNAnalysis from './GNNAnalysis';
 
-const API_URL = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = `${API_BASE}/api`;
 
 function PredictiveDegradation() {
     const [smiles, setSmiles] = useState('');

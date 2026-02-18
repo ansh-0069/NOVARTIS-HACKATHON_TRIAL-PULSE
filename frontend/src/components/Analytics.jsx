@@ -12,7 +12,8 @@ import {
 import axios from 'axios';
 import ROCDashboard from './ROCDashboard';
 
-const API_URL = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = `${API_BASE}/api`;
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -206,21 +207,19 @@ function Analytics() {
         <div className="flex gap-3">
           <button
             onClick={() => setAnalyticsView('overview')}
-            className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
-              analyticsView === 'overview'
+            className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${analyticsView === 'overview'
                 ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
                 : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
-            }`}
+              }`}
           >
             Overview
           </button>
           <button
             onClick={() => setAnalyticsView('roc')}
-            className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
-              analyticsView === 'roc'
+            className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${analyticsView === 'roc'
                 ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
                 : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
-            }`}
+              }`}
           >
             ROC Analysis
           </button>
