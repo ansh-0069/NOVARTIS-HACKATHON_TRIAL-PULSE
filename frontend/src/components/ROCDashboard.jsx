@@ -184,7 +184,7 @@ function ROCDashboard() {
                         </h3>
 
                         <div className="space-y-5">
-                            {Object.entries(config.risk_classification).map(([level, info]) => {
+                            {Object.entries(config?.risk_classification || {}).map(([level, info]) => {
                                 const icons = { 'LOW': CheckCircle, 'MODERATE': AlertTriangle, 'HIGH': XCircle };
                                 const colors = { 'LOW': 'emerald', 'MODERATE': 'yellow', 'HIGH': 'red' };
                                 const Icon = icons[level];
@@ -228,7 +228,7 @@ function ROCDashboard() {
                     <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest">Technical Integration Protocol</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
-                    {config.usage_notes.map((note, idx) => (
+                    {(config?.usage_notes || []).map((note, idx) => (
                         <div key={idx} className="flex items-start gap-2.5">
                             <span className="text-blue-500 font-black mt-0.5 flex-shrink-0">•</span>
                             <span className="text-sm text-slate-400 leading-relaxed">{note}</span>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import ROCDashboard from './ROCDashboard';
+import { generateROCPDF } from '../utils/rocPdfGenerator';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API_URL = `${API_BASE}/api`;
@@ -38,7 +39,16 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 function Analytics() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    totalAnalyses: 0,
+    methodDistribution: [],
+    statusDistribution: [],
+    trendData: [],
+    riskData: [],
+    avgDegradation: "0.00",
+    avgConfidence: "0.0",
+    passRate: "0.0"
+  });
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
   const [analyticsView, setAnalyticsView] = useState('overview');
@@ -60,14 +70,25 @@ function Analytics() {
 
   const processAnalytics = (calculations) => {
     if (!calculations || calculations.length === 0) {
-      setStats(null);
+      setStats({
+        totalAnalyses: 0,
+        methodDistribution: [],
+        statusDistribution: [],
+        trendData: [],
+        riskData: [],
+        avgDegradation: "0.00",
+        avgConfidence: "0.0",
+        passRate: "0.0"
+      });
       return;
     }
 
-    // Method usage distribution
+    // Method distribution
     const methodCount = {};
     calculations.forEach(calc => {
-      methodCount[calc.recommended_method] = (methodCount[calc.recommended_method] || 0) + 1;
+      if (calc?.recommended_method) {
+        methodCount[calc.recommended_method] = (methodCount[calc.recommended_method] || 0) + 1;
+      }
     });
 
     const methodDistribution = Object.entries(methodCount).map(([name, value]) => ({
@@ -79,7 +100,9 @@ function Analytics() {
     // Status distribution
     const statusCount = {};
     calculations.forEach(calc => {
-      statusCount[calc.status] = (statusCount[calc.status] || 0) + 1;
+      if (calc?.status) {
+        statusCount[calc.status] = (statusCount[calc.status] || 0) + 1;
+      }
     });
 
     const statusDistribution = Object.entries(statusCount).map(([name, value]) => ({
@@ -89,27 +112,23 @@ function Analytics() {
     }));
 
     // Trend over time
-    const recentCalcs = calculations
+    const recentCalcs = [...calculations]
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
       .slice(0, 20)
       .reverse();
 
     const trendData = recentCalcs.map((calc, index) => ({
       index: index + 1,
-      lk_imb: calc.lk_imb,
-      cimb: calc.cimb,
-      amb: calc.amb,
-      date: new Date(calc.timestamp).toLocaleDateString()
+      lk_imb: calc?.lk_imb || 0,
+      cimb: calc?.cimb || 0,
+      amb: calc?.amb || 0,
+      date: calc?.timestamp ? new Date(calc.timestamp).toLocaleDateString() : 'N/A'
     }));
 
     // Risk level analysis
-    const riskLevels = {
-      LOW: 0,
-      MODERATE: 0,
-      HIGH: 0
-    };
+    const riskLevels = { LOW: 0, MODERATE: 0, HIGH: 0 };
     calculations.forEach(calc => {
-      if (calc.cimb_risk_level) {
+      if (calc?.cimb_risk_level && riskLevels[calc.cimb_risk_level] !== undefined) {
         riskLevels[calc.cimb_risk_level]++;
       }
     });
@@ -121,8 +140,8 @@ function Analytics() {
     }));
 
     // Degradation statistics
-    const avgDegradation = calculations.reduce((sum, calc) => sum + (calc.degradation_level || 0), 0) / calculations.length;
-    const avgConfidence = calculations.reduce((sum, calc) => sum + (calc.confidence_index || 0), 0) / calculations.length;
+    const avgDegradation = calculations.reduce((sum, calc) => sum + (calc?.degradation_level || 0), 0) / calculations.length;
+    const avgConfidence = calculations.reduce((sum, calc) => sum + (calc?.confidence_index || 0), 0) / calculations.length;
 
     setStats({
       totalAnalyses: calculations.length,
@@ -136,16 +155,34 @@ function Analytics() {
     });
   };
 
-  const handleExportPDF = () => {
-    // PDF export logic here
-    console.log('Exporting PDF...');
+
+  const handleExportPDF = async () => {
+    if (analyticsView === 'roc') {
+      try {
+        console.log('Generating ROC Analysis PDF...');
+        const response = await axios.get(`${API_URL}/roc/config`);
+        const rocImageUrl = `${API_URL}/roc/curve?t=${Date.now()}`;
+        await generateROCPDF(response.data, rocImageUrl);
+      } catch (error) {
+        console.error('Failed to generate ROC PDF:', error);
+        alert('Could not generate ROC report. Please ensure the optimization engine is running.');
+      }
+    } else {
+      // General PDF export logic here
+      console.log('General export not implemented yet.');
+    }
   };
 
-  const handleExportData = () => {
-    // Data export logic here
-    console.log('Exporting data...');
+  const handleExportData = async () => {
+    if (analyticsView === 'roc') {
+      // User requested PDF summary for Export button as well
+      await handleExportPDF();
+    } else {
+      // General data export logic here
+      console.log('Exporting general analytics data...');
+      alert('General analytics export coming soon.');
+    }
   };
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -208,8 +245,8 @@ function Analytics() {
           <button
             onClick={() => setAnalyticsView('overview')}
             className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${analyticsView === 'overview'
-                ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
-                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
+              ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
+              : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
               }`}
           >
             Overview
@@ -217,8 +254,8 @@ function Analytics() {
           <button
             onClick={() => setAnalyticsView('roc')}
             className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${analyticsView === 'roc'
-                ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
-                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
+              ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/50'
+              : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-slate-700/50'
               }`}
           >
             ROC Analysis

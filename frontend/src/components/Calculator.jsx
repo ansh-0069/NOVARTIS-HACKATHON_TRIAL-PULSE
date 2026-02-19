@@ -135,10 +135,10 @@ function Calculator({ historyEntry, onHistoryEntryConsumed }) {
 
       try {
         const response = await axios.get(`${API_URL}/history`);
-        const calculations = response.data.calculations || [];
+        const calculations = response.data?.calculations || [];
 
         const duplicates = calculations.filter(
-          calc => calc.sample_id && calc.sample_id.toLowerCase() === inputs.sample_id.toLowerCase()
+          calc => calc?.sample_id && calc?.sample_id.toLowerCase() === inputs.sample_id.toLowerCase()
         );
 
         if (duplicates.length > 0) {
@@ -273,14 +273,14 @@ function Calculator({ historyEntry, onHistoryEntryConsumed }) {
   const handleDownloadPDF = () => {
     if (results) {
       generatePDF({
-        mb_results: results.results,
-        correction_factors: results.correction_factors,
-        recommended_method: results.recommended_method,
-        recommended_value: results.recommended_value,
-        status: results.status,
-        diagnostic_message: results.diagnostic_message,
-        rationale: results.rationale,
-        degradation_level: results.degradation_level
+        mb_results: results?.results || {},
+        correction_factors: results?.correction_factors || {},
+        recommended_method: results?.recommended_method,
+        recommended_value: results?.recommended_value,
+        status: results?.status,
+        diagnostic_message: results?.diagnostic_message,
+        rationale: results?.rationale,
+        degradation_level: results?.degradation_level
       }, inputs);
     }
   };
@@ -654,7 +654,7 @@ function Calculator({ historyEntry, onHistoryEntryConsumed }) {
               <div className="space-y-2">
                 <p className="text-slate-400 text-xs font-semibold">Existing tests:</p>
                 <div className="max-h-40 overflow-y-auto space-y-2">
-                  {existingTests.slice(0, 5).map((test) => (
+                  {(existingTests || []).slice(0, 5).map((test) => (
                     <div
                       key={test.id}
                       className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50"

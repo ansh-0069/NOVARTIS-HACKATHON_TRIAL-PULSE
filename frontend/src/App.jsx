@@ -12,6 +12,7 @@ import LIMSConfig from './components/LIMSConfig';
 import PredictiveDegradation from './components/PredictiveDegradation';
 import QbDDashboard from './components/QbDDashboard';
 import StabilityMonitor from './components/StabilityMonitor';
+import SafeErrorBoundary from './components/SafeErrorBoundary';
 
 function App() {
   const [activeTab, setActiveTab] = useState('calculator');
@@ -109,24 +110,26 @@ function App() {
 
         {/* Main Content Area */}
         <main className="flex-1 max-w-[1600px] mx-auto w-full px-8 py-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-              transition={{ duration: 0.3, ease: "circOut" }}
-            >
-              {activeTab === 'calculator' && <Calculator historyEntry={historyEntry} onHistoryEntryConsumed={() => setHistoryEntry(null)} />}
-              {activeTab === 'analytics' && <Analytics />}
-              {activeTab === 'history' && <History onViewEntry={handleViewHistoryEntry} />}
-              {activeTab === 'regulatory' && <Regulatory />}
-              {activeTab === 'lims' && <LIMSConfig />}
-              {activeTab === 'predict' && <PredictiveDegradation />}
-              {activeTab === 'qbd' && <QbDDashboard />}
-              {activeTab === 'stability' && <StabilityMonitor />}
-            </motion.div>
-          </AnimatePresence>
+          <SafeErrorBoundary>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+                transition={{ duration: 0.3, ease: "circOut" }}
+              >
+                {activeTab === 'calculator' && <Calculator historyEntry={historyEntry} onHistoryEntryConsumed={() => setHistoryEntry(null)} />}
+                {activeTab === 'analytics' && <Analytics />}
+                {activeTab === 'history' && <History onViewEntry={handleViewHistoryEntry} />}
+                {activeTab === 'regulatory' && <Regulatory />}
+                {activeTab === 'lims' && <LIMSConfig />}
+                {activeTab === 'predict' && <PredictiveDegradation />}
+                {activeTab === 'qbd' && <QbDDashboard />}
+                {activeTab === 'stability' && <StabilityMonitor />}
+              </motion.div>
+            </AnimatePresence>
+          </SafeErrorBoundary>
         </main>
 
         {/* Dynamic Footer */}
