@@ -88,6 +88,7 @@ class LIMSManager {
             id: key,
             name: config.lims_systems[key].name,
             type: config.lims_systems[key].type,
+            auth_method: config.lims_systems[key].auth_method,
             supported: config.lims_systems[key].supported
         }));
     }

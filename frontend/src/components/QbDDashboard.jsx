@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import {
     Shield, CheckCircle, AlertCircle, TrendingUp, Sliders,
-    Target, FileText, Microscope, Plus, X, RefreshCw, Database
+    Target, FileText, Microscope, Plus, X, RefreshCw, Database, Settings
 } from 'lucide-react';
+import LIMSConfig from './LIMSConfig';
 import {
     ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     ReferenceArea, ReferenceLine
@@ -68,7 +69,6 @@ function QbDDashboard() {
         setSyncing(true);
         try {
             const response = await axios.post(`${API_URL}/qbd/lims-sync`, {
-                system_name: 'thermo_watson',
                 query: { status: 'COMPLETE' }
             });
 
@@ -78,7 +78,8 @@ function QbDDashboard() {
             }
         } catch (error) {
             console.error('LIMS sync error:', error);
-            alert('Failed to sync with LIMS');
+            const errorMsg = error.response?.data?.error || error.message;
+            alert(`Failed to sync with LIMS: ${errorMsg}\n\nPlease check LIMS configuration in the LIMS Integration tab.`);
         } finally {
             setSyncing(false);
         }
@@ -184,6 +185,7 @@ function QbDDashboard() {
                     { id: 'design-space', label: 'Design Space', icon: Target },
                     { id: 'control-strategy', label: 'Control Strategy', icon: Sliders },
                     { id: 'cqas', label: 'CQAs & CPPs', icon: Microscope },
+                    { id: 'lims-config', label: 'LIMS Integration', icon: Settings },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -472,6 +474,11 @@ function QbDDashboard() {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* LIMS CONFIG TAB */}
+                {activeTab === 'lims-config' && (
+                    <LIMSConfig />
                 )}
 
             </div>

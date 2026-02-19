@@ -21,8 +21,8 @@ const MLAnomaly = ({ prediction }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`p-6 rounded-xl border ${is_anomaly
-                    ? 'bg-red-950/20 border-red-500/30'
-                    : 'bg-emerald-950/20 border-emerald-500/30'
+                ? 'bg-red-950/20 border-red-500/30'
+                : 'bg-emerald-950/20 border-emerald-500/30'
                 }`}
         >
             <div className="flex items-start justify-between mb-4">
@@ -47,7 +47,7 @@ const MLAnomaly = ({ prediction }) => {
                 </div>
                 <div className="text-right">
                     <div className="text-2xl font-bold text-white">{displayScore}%</div>
-                    <div className="text-xs text-slate-400">Annoaly Probability</div>
+                    <div className="text-xs text-slate-400">Anomaly Probability</div>
                 </div>
             </div>
 

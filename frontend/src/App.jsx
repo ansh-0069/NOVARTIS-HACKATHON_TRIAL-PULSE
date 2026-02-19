@@ -18,7 +18,6 @@ function App() {
 
   const tabs = [
     { id: 'calculator', label: 'Analysis Lab', icon: Activity, group: 'Lab' },
-    { id: 'lims', label: 'LIMS', icon: Database, group: 'Lab' },
     { id: 'history', label: 'Archive', icon: HistoryIcon, group: 'Lab' },
     { id: 'analytics', label: 'Intelligence', icon: BarChart3, group: 'AI' },
     { id: 'predict', label: 'Predict', icon: Sparkles, group: 'AI' },

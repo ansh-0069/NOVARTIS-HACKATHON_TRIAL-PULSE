@@ -1386,6 +1386,41 @@ app.get('/api/lims/status', (req, res) => {
     }
 });
 
+// ============================================
+// MOCK LIMS ENDPOINTS FOR DEMO
+// ============================================
+
+// Mock Thermo Watson
+app.get('/api/mock-lims/api/v2/samples/query', (req, res) => {
+    res.json({
+        samples: [
+            { SampleName: 'WATSON-DOE-101', StressTemperature: 45, StressDuration: 24, CIMB_Result: 99.1, StressType: 'thermal' },
+            { SampleName: 'WATSON-DOE-102', StressTemperature: 50, StressDuration: 48, CIMB_Result: 97.4, StressType: 'thermal' }
+        ]
+    });
+});
+
+// Mock LabWare
+app.get('/api/mock-lims/LabwareLIMS/GetSamples.asmx', (req, res) => {
+    // Basic mock response - in reality this would be XML
+    res.json({
+        samples: [
+            { SAMPLE_NUMBER: 'LW-EXP-201', TEMP: 40, HOURS: 72, MASS_BALANCE_PCT: 98.8 },
+            { SAMPLE_NUMBER: 'LW-EXP-202', TEMP: 60, HOURS: 12, MASS_BALANCE_PCT: 101.2 }
+        ]
+    });
+});
+
+// Mock STARLIMS
+app.get('/api/mock-lims/api/rest/v1/samples', (req, res) => {
+    res.json({
+        samples: [
+            { sampleId: 'SL-QBD-301', description: 'Photo Stability Test', mb_result: 96.5 },
+            { sampleId: 'SL-QBD-302', description: 'Oxidative Stress 1%', mb_result: 98.9 }
+        ]
+    });
+});
+
 /**
  * Call Python prediction service
  */
@@ -1679,44 +1714,66 @@ app.post('/api/qbd/assess-sample', (req, res) => {
 app.post('/api/qbd/lims-sync', async (req, res) => {
     const { system_name, query } = req.body;
 
-    console.log(`🔄 Syncing QbD data from LIMS: ${system_name}`);
+    console.log(`🔄 Syncing QbD data from LIMS: ${system_name || 'Active System'}`);
 
     try {
         const result = await limsManager.fetchSamples(query, system_name);
 
-        if (result.success && result.samples.length > 0) {
-            // Store sync'd data for visualization (using design_space_experiments table for now)
-            // with type 'LIMS_SYNC'
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+
+        if (result.samples && result.samples.length > 0) {
+            // Store sync'd data for visualization (using design_space_experiments table)
             const stmt = db.prepare(`INSERT INTO design_space_experiments 
                 (id, experiment_name, experiment_type, temperature, duration, ph, 
                 oxidizer_conc, stress_type, measured_cimb, measured_degradation,
                 meets_cqa, performed_date, notes)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
+            let savedCount = 0;
             for (const sample of result.samples) {
                 stmt.run(
                     uuidv4(),
-                    sample.experiment_name || `LIMS-${Date.now()}`,
+                    sample.experiment_name || `LIMS-${Date.now()}-${savedCount}`,
                     'VALIDATION', // Using VALIDATION type for LIMS data
-                    sample.temperature,
-                    sample.duration,
+                    sample.temperature || 40,
+                    sample.duration || 24,
                     sample.ph || 7.0,
                     sample.oxidizer_conc || 0,
                     sample.stress_type || 'N/A',
-                    sample.measured_cimb,
+                    sample.measured_cimb || 100,
                     sample.measured_degradation || 0,
                     sample.measured_cimb >= 95 && sample.measured_cimb <= 105, // Auto-assessment
                     new Date().toISOString(),
                     'Synchronized from LIMS'
                 );
+                savedCount++;
             }
             stmt.finalize();
+
+            console.log(`✓ Synchronized ${savedCount} samples from LIMS`);
+            res.json({
+                success: true,
+                message: `Successfully synchronized ${savedCount} samples from LIMS`,
+                samples: result.samples
+            });
+        } else {
+            res.json({ success: true, samples: [], message: 'No samples found to synchronize' });
         }
 
-        res.json(result);
     } catch (error) {
-        console.error('❌ Sync error:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('❌ LIMS Sync Error:', error);
+
+        // Handle both Error objects and plain objects thrown by connectors
+        const message = error.message || error.error || 'LIMS synchronization failed';
+        const details = error.lims_system ? `System: ${error.lims_system}` : '';
+
+        res.status(500).json({
+            success: false,
+            error: message,
+            details: details
+        });
     }
 });
 
@@ -1973,6 +2030,21 @@ app.listen(PORT, () => {
     console.log('  GET  /api/excel/history         - History report (limit param)');
     console.log('  GET  /api/excel/database        - Full database report');
     console.log('');
+
+    // Auto-initialize default LIMS for demo/development
+    try {
+        const defaultSystem = 'thermo_watson';
+        const mockConfig = {
+            base_url: 'http://localhost:5000/api/mock-lims',
+            api_key: 'demo-api-key-123',
+            username: 'demo_user',
+            password: 'demo_password'
+        };
+        limsManager.initialize(defaultSystem, mockConfig);
+        console.log(`📡 Auto-initialized LIMS: ${defaultSystem} (Mock Mode)`);
+    } catch (e) {
+        console.warn('⚠️ LIMS auto-initialization skipped:', e.message);
+    }
 });
 
 // Error handling

@@ -75,6 +75,12 @@ class LIMSConnector {
     }
 
     async getOAuth2Token() {
+        // Mock fallback for demo/development if no real OAuth URL is provided
+        if (!this.config.oauth_url || this.config.oauth_url.includes('company.com') || this.config.oauth_url.includes('mock')) {
+            this.logger.log('Using mock OAuth2 token for demo');
+            return `mock-token-${Date.now()}`;
+        }
+
         try {
             const response = await axios.post(this.config.oauth_url, {
                 grant_type: 'client_credentials',

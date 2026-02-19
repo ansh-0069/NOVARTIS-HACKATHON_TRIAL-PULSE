@@ -10,15 +10,16 @@
 
 ## 📌 Overview
 
-**Mass Balance Calculator** is an intelligent pharmaceutical analytics platform designed to automate **mass balance calculations**, improve **drug stability analysis workflows**, and generate **regulatory-ready reports** in real time.
+Mass Balance Calculator is an enterprise-grade pharmaceutical analytics platform designed to automate mass balance calculations, improve drug stability analysis workflows, and provide AI-powered predictive intelligence for regulatory-ready reports.
 
-The platform eliminates manual spreadsheet dependency by providing a **full-stack digital solution** that integrates:
+The platform eliminates manual spreadsheet dependency by providing a full-stack digital solution that integrates:
 
+* **🤖 AI & Machine Learning Layer**: Predictive degradation and anomaly detection
+* **🏢 Enterprise Integration**: Seamless LIMS synchronization
+* **📊 Quality by Design (QbD)**: Integrated CQA/CPP management and design space exploration
+* **📅 Stability Monitoring**: Automated protocol tracking and shelf-life prediction
 * **Dual Statistical Methods**: LK-IMB and CIMB with 95% Confidence Intervals
-* **Automated Mass Balance Calculations** (SMB, AMB, RMB, LK-IMB, CIMB)
-* **Risk-Based Assessment** (LOW/MODERATE/HIGH)
-* **Degradation & Stability Tracking**
-* **Molecular Weight & RRF Adjusted Corrections**
+* **Risk-Based Assessment**: Automated LOW/MODERATE/HIGH classification
 * **Instant PDF & Excel Report Generation**
 * **Persistent Data Storage with History**
 
@@ -35,6 +36,37 @@ Watch the complete demonstration of Mass Balance Calculator in action:
 ---
 
 ## 🚀 Key Features
+
+### 🤖 AI & Machine Learning Layer
+
+* **Predictive Degradation (GNN)**: Leverages **Graph Neural Networks** to analyze molecular structure (SMILES) and predict potential degradation products, their molecular weights, and expected mass balance recovery before performing experimental stress tests.
+* **ML-Powered Anomaly Detection**: Uses sophisticated algorithms to detect experimental outliers, flagging results that deviate from historical patterns even if they fall within standard 95-105% thresholds.
+* **Bayesian Statistical Engine**: Goes beyond simple t-distributions by incorporating **Prior Distributions** from historical data to provide more robust uncertainty quantification and higher confidence in mass balance closure.
+* **Hybrid Molecular Interaction**: Combines experimental HPLC data with predicted stoichiometric models to estimate **UV-silent degradants** and **volatile losses**, effectively "solving" for the missing mass in complex degradation pathways.
+
+### 🏢 Enterprise Integration & LIMS
+
+* **Direct LIMS Synchronization**: Out-of-the-box connectors for **LabWare**, **STARLIMS**, and **Watson LIMS**, allowing for automated retrieval of experimental results and meta-data synchronization.
+* **LIMS-to-DoE Workflow**: Seamlessly bridge laboratory data into **Quality by Design (QbD)** modules, enabling bulk synchronization of samples for large-scale Design of Experiments (DoE) studies.
+* **Enterprise Security & Config**: Manage custom system adapters, API endpoints, and authentication credentials through a centralized, secure configuration interface.
+
+### 📊 Quality by Design (QbD) Framework
+
+* **CQA & CPP Management**: Define and track **Critical Quality Attributes** (e.g., CIMB, Assay) and **Critical Process Parameters** (e.g., pH, Temperature), establishing clear linkage between processes and product quality.
+* **Design Space Exploration**: Visualize the experimental "Safe Zone" through interactive dashboards, identifying optimal operating conditions where mass balance and stability are guaranteed.
+* **Automated Control Strategy**: Implement data-driven process controls and monitoring protocols that adjust based on real-time experimental findings.
+
+### 📅 Intelligent Stability Monitoring
+
+* **Automated Study Lifecycle**: Manage stability studies from protocol initiation to final report, with built-in tracking for batches, storage conditions (e.g., 25°C/60% RH), and analysts.
+* **ICH-Compliant Timepoint Tracking**: Automatic generation and tracking of standard stability intervals (0, 3, 6, 9, 12, 18, 24, 36 months) with "Next Event" alerting.
+* **Predictive Shelf-Life Forecasting**: Employs regression models on longitudinal data to predict **Expiration Dating** and provide early-warning alerts for potential Out-of-Specification (OOS) trends.
+* **Live Compliance Matrix**: Real-time cross-referencing of experimental findings against ICH Q1A(R2) limits and batch-specific acceptance criteria.
+
+### 🛡️ Regulatory & Compliance
+
+* **Automated Compliance Matrix**: Real-time monitoring against ICH limits
+* **Hybrid Detection**: UV-silent and volatile loss estimation
 
 ### 🧮 Advanced Mass Balance Methods
 
@@ -95,33 +127,32 @@ Watch the complete demonstration of Mass Balance Calculator in action:
 ```
 ┌─────────────────────────────────────────────────┐
 │         Frontend (React + Vite)                 │
-│  - Input Forms                                  │
-│  - Results Dashboard                            │
-│  - PDF Generation (jsPDF)                       │
-│  - Charts (Recharts)                            │
+│  - Advanced Dashboards (QbD, ROC, Stability)    │
+│  - AI Predictive Interface                      │
+│  - Professional PDF/Excel Reporting             │
+│  - Enterprise LIMS Configuration                │
 └────────────────┬────────────────────────────────┘
                  │ HTTP/REST API
                  ↓
 ┌─────────────────────────────────────────────────┐
 │      Backend API (Node.js + Express)            │
-│  - Mass Balance Calculations                    │
-│  - Statistical Analysis (LK-IMB & CIMB)         │
-│  - Confidence Intervals (t-distribution)        │
-│  - Risk Assessment Logic                        │
+│  - Mass Balance Calculations (LK-IMB & CIMB)    │
+│  - ML Anomaly & GNN Prediction Layer            │
+│  - Bayesian Statistical Engine                  │
+│  - Regulatory Compliance Logic                  │
 └────────────────┬────────────────────────────────┘
                  │
                  ↓
 ┌─────────────────────────────────────────────────┐
 │         Database (SQLite)                       │
-│  - Calculation History                          │
-│  - LK-IMB & CIMB Statistical Data               │
-│  - User Metadata                                │
+│  - Expanded QbD & Stability Schemas             │
+│  - Multi-System LIMS Mappings                   │
+│  - Statistical Prior Distributions              │
 └─────────────────────────────────────────────────┘
 
-         Python Script (app.py)
-              ↓
-    Excel Report Generation
-    (Mass_Balance_Calculator.xlsx)
+      AI/ML Services (Python)      LIMS Connectors
+              ↓                          ↓
+    Predictive Intelligence      Enterprise Sync
 ```
 
 ---
@@ -132,30 +163,31 @@ Watch the complete demonstration of Mass Balance Calculator in action:
 mass-balance/
 │
 ├── backend/
-│   ├── server.js                    # Express API server with RESTful endpoints
-│   ├── excelGenerator.js            # Excel report generation orchestrator
-│   ├── mass_balance.db              # SQLite database for calculation history
-│   ├── reports/                     # Generated Excel reports directory
-│   ├── package.json                 # Backend dependencies
-│   └── node_modules/
+│   ├── server.js                    # Core API with ML & QbD endpoints
+│   ├── lims/                        # LIMS integration connectors (LabWare/STARLIMS)
+│   ├── ml/                          # ML prediction & anomaly detection services
+│   ├── bayesian/                    # Bayesian statistical models
+│   ├── reporting/                   # Regulatory dossier generation engine
+│   ├── mass_balance.db              # SQLite with expanded QbD/Stability tables
+│   ├── regulatoryMatrix.js          # Compliance assessment logic
+│   └── hybridDetection.js           # UV-silent & volatile loss analysis
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Calculator.jsx       # Main calculator with input form
-│   │   │   ├── Results.jsx          # Results with charts & 4-page PDF export
-│   │   │   └── History.jsx          # Calculation history with Excel export
-│   │   ├── App.jsx                  # Main application router
-│   │   └── main.jsx                 # Entry point
-│   ├── package.json                 # Frontend dependencies
-│   ├── vite.config.js               # Vite configuration
-│   └── node_modules/
+│   │   │   ├── QbDDashboard.jsx     # Quality by Design interface
+│   │   │   ├── ROCDashboard.jsx     # Optimization & CI thresholds
+│   │   │   ├── StabilityMonitor.jsx # Stability study management
+│   │   │   ├── Regulatory.jsx       # Compliance assessment matrix
+│   │   │   ├── PredictiveDegradation.jsx # AI-powered forecasting
+│   │   │   ├── Analytics.jsx        # Advanced data visualization
+│   │   │   ├── LIMSConfig.jsx       # Enterprise system settings
+│   │   │   └── Results.jsx          # Results with charts & PDF export
+│   │   └── App.jsx                  # Main router with new modules
 │
 ├── excel-service/
 │   ├── excel.py                     # Python Excel generation service
-│   ├── reports/                     # Generated Excel files
-│   ├── requirements.txt             # Python dependencies
-│   └── README.md                    # Excel service documentation
+│   └── reports/                     # Generated Excel files
 │
 └── README.md                        # This file
 ```
@@ -591,15 +623,17 @@ DELETE /api/calculation/:id
 
 ## 🔮 Future Roadmap
 
+- [x] LIMS Integration (LabWare, STARLIMS, Watson)
+- [x] AI-Based Degradation Prediction (GNN/Hybrid)
+- [x] Quality by Design (QbD) Framework
+- [x] Stability Protocol Monitoring
+- [x] ROC-Optimized Confidence Thresholds
+- [x] Regulatory Dossier Generation (FDA/EMA Style)
 - [ ] Cloud Deployment (AWS/Azure)
-- [ ] AI-Based Degradation Prediction
-- [ ] Batch Upload Analysis (CSV/Excel import)
-- [ ] LIMS Integration
-- [ ] Multi-Compound Analysis
-- [ ] Advanced Statistical Models (Bootstrap, Monte Carlo)
-- [ ] User Authentication & Role Management
-- [ ] Regulatory Format Auto-Compliance (FDA, EMA)
-- [ ] Real-time Collaboration Features
+- [ ] Batch Upload Analysis (Mass Import)
+- [ ] Real-time Multi-Compound Analysis
+- [ ] Advanced Monte Carlo Simulation
+- [ ] Integrated Voice-to-Data Logging
 
 ---
 
@@ -690,15 +724,5 @@ For questions, issues, or feature requests, please open an issue on the reposito
 
 ---
 
-**Last Updated:** February 14, 2026
-**Version:** 2.1 (Enhanced PDF & Excel Reporting)
-
-### Recent Updates (v2.1)
-
-- ✅ **Professional 4-Page PDF Reports** with visual confidence interval scales for both LK-IMB and CIMB
-- ✅ **History-Only Excel Export** for quick calculation history downloads
-- ✅ **Timestamp-Based File Naming** for better organization (YYYYMMDD_HHMM format)
-- ✅ **Modern Excel Styling** with blue headers (#3b82f6) and improved formatting
-- ✅ **Enhanced Excel Service** with Python backend and 6-sheet comprehensive reports
-- ✅ **Improved Risk Visualization** with color-coded assessment matrices in PDF
-- ✅ **Code Optimization** for cleaner, production-ready codebase
+**Version:** 3.0 (AI-Powered Enterprise Edition)
+**Status:** Stable / Production Ready
