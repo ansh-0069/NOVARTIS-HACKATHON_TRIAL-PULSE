@@ -221,17 +221,17 @@ function ROCDashboard() {
 
             {/* Implementation Flux Notes */}
             <div className="relative overflow-hidden rounded-3xl border border-blue-500/10 bg-gradient-to-br from-blue-900/20 to-slate-900/50 backdrop-blur-xl p-8">
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-5">
                     <div className="p-2 bg-blue-500/10 rounded-lg">
                         <Zap className="text-blue-400" size={16} />
                     </div>
-                    <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">Technical Integration Protocol</h3>
+                    <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest">Technical Integration Protocol</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
                     {config.usage_notes.map((note, idx) => (
-                        <div key={idx} className="flex items-start gap-3">
-                            <span className="text-blue-500 font-black mt-0.5">•</span>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter opacity-80">{note}</span>
+                        <div key={idx} className="flex items-start gap-2.5">
+                            <span className="text-blue-500 font-black mt-0.5 flex-shrink-0">•</span>
+                            <span className="text-sm text-slate-400 leading-relaxed">{note}</span>
                         </div>
                     ))}
                 </div>

@@ -15,6 +15,12 @@ import StabilityMonitor from './components/StabilityMonitor';
 
 function App() {
   const [activeTab, setActiveTab] = useState('calculator');
+  const [historyEntry, setHistoryEntry] = useState(null);
+
+  const handleViewHistoryEntry = (calc) => {
+    setHistoryEntry(calc);
+    setActiveTab('calculator');
+  };
 
   const tabs = [
     { id: 'calculator', label: 'Analysis Lab', icon: Activity, group: 'Lab' },
@@ -111,9 +117,9 @@ function App() {
               exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
               transition={{ duration: 0.3, ease: "circOut" }}
             >
-              {activeTab === 'calculator' && <Calculator />}
+              {activeTab === 'calculator' && <Calculator historyEntry={historyEntry} onHistoryEntryConsumed={() => setHistoryEntry(null)} />}
               {activeTab === 'analytics' && <Analytics />}
-              {activeTab === 'history' && <History />}
+              {activeTab === 'history' && <History onViewEntry={handleViewHistoryEntry} />}
               {activeTab === 'regulatory' && <Regulatory />}
               {activeTab === 'lims' && <LIMSConfig />}
               {activeTab === 'predict' && <PredictiveDegradation />}

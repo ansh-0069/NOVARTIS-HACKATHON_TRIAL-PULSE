@@ -4,13 +4,13 @@ import axios from 'axios';
 import {
   Trash2, Search, Filter, ChevronLeft, ChevronRight,
   Calendar, User, Beaker, CheckCircle, AlertTriangle,
-  XCircle, Download, Eye
+  XCircle, Download, Eye, ExternalLink
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API_URL = `${API_BASE}/api`;
 
-function History() {
+function History({ onViewEntry }) {
   const [calculations, setCalculations] = useState([]);
   const [filteredCalculations, setFilteredCalculations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -273,6 +273,9 @@ function History() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                     Actions
                   </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Open
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -351,6 +354,22 @@ function History() {
                               className="text-slate-500 group-hover:text-red-400 transition-colors"
                             />
                           </motion.button>
+                        </td>
+                        <td className="px-6 py-4">
+                          {onViewEntry && (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => onViewEntry(calc)}
+                              className="p-2 hover:bg-blue-500/10 rounded-lg transition-colors group"
+                              title="Open in Analysis Lab"
+                            >
+                              <ExternalLink
+                                size={16}
+                                className="text-slate-500 group-hover:text-blue-400 transition-colors"
+                              />
+                            </motion.button>
+                          )}
                         </td>
                       </motion.tr>
                     );

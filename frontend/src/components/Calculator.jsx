@@ -42,7 +42,7 @@ const Tooltip = ({ children, content }) => {
   );
 };
 
-function Calculator() {
+function Calculator({ historyEntry, onHistoryEntryConsumed }) {
   const [inputs, setInputs] = useState({
     initial_api: '',
     stressed_api: '',
@@ -71,6 +71,58 @@ function Calculator() {
     gc_ms_detected: false,
     gc_ms_volatiles: 0
   });
+  const [isHistoricalView, setIsHistoricalView] = useState(false);
+
+  // Pre-populate from history entry
+  useEffect(() => {
+    if (!historyEntry) return;
+    // Populate inputs from saved data (flat DB columns)
+    setInputs({
+      initial_api: historyEntry.initial_api ?? '',
+      stressed_api: historyEntry.stressed_api ?? '',
+      initial_degradants: historyEntry.initial_degradants ?? '',
+      stressed_degradants: historyEntry.stressed_degradants ?? '',
+      degradant_mw: historyEntry.degradant_mw ?? '',
+      parent_mw: historyEntry.parent_mw ?? '',
+      rrf: historyEntry.rrf ?? '',
+      stress_type: historyEntry.stress_type || 'Acid',
+      sample_id: historyEntry.sample_id || '',
+      analyst_name: historyEntry.analyst_name || ''
+    });
+    // Reconstruct the nested results shape from flat DB columns
+    // so the Results component renders correctly
+    setResults({
+      recommended_method: historyEntry.recommended_method,
+      recommended_value: historyEntry.recommended_value,
+      confidence_index: historyEntry.confidence_index,
+      status: historyEntry.status,
+      diagnostic_message: historyEntry.diagnostic_message || '',
+      rationale: historyEntry.rationale || '',
+      degradation_level: historyEntry.degradation_level ?? '',
+      results: {
+        smb: historyEntry.smb,
+        amb: historyEntry.amb,
+        rmb: historyEntry.rmb,
+        lk_imb: historyEntry.lk_imb,
+        lk_imb_lower_ci: historyEntry.lk_imb_lower_ci,
+        lk_imb_upper_ci: historyEntry.lk_imb_upper_ci,
+        lk_imb_risk_level: historyEntry.lk_imb_risk_level,
+        cimb: historyEntry.cimb,
+        cimb_lower_ci: historyEntry.cimb_lower_ci,
+        cimb_upper_ci: historyEntry.cimb_upper_ci,
+        cimb_risk_level: historyEntry.cimb_risk_level,
+      },
+      correction_factors: {
+        lambda: historyEntry.lambda,
+        omega: historyEntry.omega,
+        stoichiometric_factor: historyEntry.stoichiometric_factor,
+      }
+    });
+    setIsHistoricalView(true);
+    setSaved(false);
+    if (onHistoryEntryConsumed) onHistoryEntryConsumed();
+  }, [historyEntry]);
+
 
   // Check for duplicate sample IDs
   useEffect(() => {
@@ -193,6 +245,7 @@ function Calculator() {
     setSaved(false);
     setDuplicateWarning(false);
     setExistingTests([]);
+    setIsHistoricalView(false);
   };
 
   const handleDownloadExcel = async () => {
@@ -349,6 +402,19 @@ function Calculator() {
             >
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-green-400 text-sm font-medium">Analysis Complete</span>
+            </motion.div>
+          )}
+          {/* Historical View Banner */}
+          {isHistoricalView && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex items-center gap-3 px-4 py-3 bg-violet-500/10 border border-violet-500/30 rounded-xl"
+            >
+              <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
+              <span className="text-violet-300 text-sm font-medium">
+                Viewing archived analysis — inputs restored from history. Re-run or edit to create a new calculation.
+              </span>
             </motion.div>
           )}
         </div>
