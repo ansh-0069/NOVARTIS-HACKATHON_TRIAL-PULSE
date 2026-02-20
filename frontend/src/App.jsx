@@ -35,13 +35,13 @@ function App() {
 
   const tabs = [
     { id: 'calculator', label: 'Analysis Lab', icon: Activity, group: 'Lab' },
-    { id: 'lims', label: 'Enterprise', icon: Database, group: 'Lab' },
     { id: 'history', label: 'Archive', icon: HistoryIcon, group: 'Lab' },
     { id: 'analytics', label: 'Intelligence', icon: BarChart3, group: 'AI' },
     { id: 'predict', label: 'Predict', icon: Sparkles, group: 'AI' },
     { id: 'stability', label: 'Stability', icon: Clock, group: 'AI' },
     { id: 'regulatory', label: 'Compliance', icon: Shield, group: 'Reg' },
     { id: 'qbd', label: 'QbD', icon: Shield, group: 'Reg' },
+    { id: 'lims', label: 'Enterprise', icon: Database, group: 'Reg' },
   ];
 
   return (
