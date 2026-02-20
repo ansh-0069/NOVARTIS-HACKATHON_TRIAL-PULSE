@@ -187,10 +187,6 @@ function App() {
               <div className="text-slate-500 hover:text-slate-400 text-xs transition-colors cursor-help border-b border-dashed border-slate-700 pb-0.5">
                 ICH Q1A(R2) / Q3B(R2) Validated
               </div>
-              <div className="w-1 h-1 bg-slate-800 rounded-full" />
-              <div className="text-slate-600 text-[10px] font-mono">
-                Instance ID: MB-AI-NODE-PRIME
-              </div>
             </div>
 
             <div className="flex items-center gap-8">
