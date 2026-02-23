@@ -1,0 +1,91 @@
+{
+  "version": "3.0",
+  "training_date": "2026-02-23",
+  "training_timestamp": "2026-02-23T07:02:28.667035",
+  "model_type": "LogisticRegression",
+  "cross_validation": "5-fold Stratified",
+  "threshold_method": "youden",
+  "class_weight": "none",
+  "optimal_ci_threshold": 90.0,
+  "statistical_ci_threshold": 21.4716,
+  "regulatory_floor_applied": true,
+  "optimal_proba_threshold": 0.785284,
+  "model_performance": {
+    "auc": 1.0,
+    "auc_ci_lower": 1.0,
+    "auc_ci_upper": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "ppv": 1.0,
+    "npv": 1.0,
+    "accuracy": 1.0,
+    "j_statistic": 1.0
+  },
+  "threshold_bootstrap_ci": {
+    "mean": 16.3426,
+    "lower_2_5": 5.6251,
+    "upper_97_5": 24.6151,
+    "n_iterations": 1000,
+    "constraint_met": false
+  },
+  "model_coefficients": {
+    "feature_columns": [
+      "degradation_level",
+      "lk_imb",
+      "cimb"
+    ],
+    "coefficients": [
+      -1.07704354,
+      -2.11020415,
+      -2.21068804
+    ],
+    "intercept": 0.19007392,
+    "scaler_mean": [
+      11.463,
+      93.545,
+      94.639
+    ],
+    "scaler_scale": [
+      6.21405914,
+      4.84234189,
+      4.17429982
+    ]
+  },
+  "risk_classification": {
+    "LOW": {
+      "ci_range": [
+        90.0,
+        100.0
+      ],
+      "description": "High confidence \u2014 mass balance likely acceptable"
+    },
+    "MODERATE": {
+      "ci_range": [
+        70.0,
+        90.0
+      ],
+      "description": "Borderline \u2014 requires expert analytical review"
+    },
+    "HIGH": {
+      "ci_range": [
+        0.0,
+        70.0
+      ],
+      "description": "Low confidence \u2014 investigation recommended"
+    }
+  },
+  "confusion_matrix": {
+    "true_positives": 48,
+    "true_negatives": 52,
+    "false_positives": 0,
+    "false_negatives": 0
+  },
+  "usage_notes": [
+    "Threshold (90.0%) selected via YOUDEN \u2014 score = 1.0000",
+    "AUC = 1.0000  95% CI [1.0000, 1.0000]  (DeLong 1988)",
+    "Bootstrap 95% CI on threshold: [5.6%, 24.6%]  (n=1000)",
+    "CI = (1 \u2212 P_failure) \u00d7 100  via LogisticRegression logit output",
+    "Features: degradation_level, lk_imb, cimb",
+    "Retrain quarterly or when >50 new validated samples are available"
+  ]
+}

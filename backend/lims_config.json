@@ -1,0 +1,80 @@
+{
+    "lims_systems": {
+        "thermo_watson": {
+            "name": "Thermo Fisher Watson LIMS",
+            "type": "REST_API",
+            "base_url": "${LIMS_URL}",
+            "auth_method": "API_KEY",
+            "endpoints": {
+                "submit_result": "/api/v2/results/submit",
+                "get_samples": "/api/v2/samples/query",
+                "get_sample": "/api/v2/samples/{sample_id}",
+                "update_status": "/api/v2/samples/{sample_id}/status"
+            },
+            "field_mapping": {
+                "sample_id": "SampleNumber",
+                "analyst_name": "AnalystID",
+                "stress_type": "TestCondition",
+                "cimb": "MassBalanceCIMB",
+                "status": "PassFailStatus"
+            },
+            "qbd_mapping": {
+                "experiment_name": "SampleName",
+                "temperature": "StressTemperature",
+                "duration": "StressDuration",
+                "ph": "pH",
+                "oxidizer_conc": "H2O2Percent",
+                "measured_cimb": "CIMB_Result",
+                "measured_degradation": "DegradationPercent",
+                "stress_type": "StressType"
+            },
+            "supported": true
+        },
+        "labware": {
+            "name": "LabWare LIMS",
+            "type": "SOAP_API",
+            "base_url": "${LIMS_URL}",
+            "auth_method": "USERNAME_PASSWORD",
+            "endpoints": {
+                "submit_result": "/LabwareLIMS/WebService.asmx",
+                "get_samples": "/LabwareLIMS/GetSamples.asmx"
+            },
+            "field_mapping": {
+                "sample_id": "SAMPLE_ID",
+                "analyst_name": "ANALYST",
+                "cimb": "MASS_BALANCE_PCT"
+            },
+            "qbd_mapping": {
+                "experiment_name": "SAMPLE_NUMBER",
+                "temperature": "TEMP",
+                "duration": "HOURS"
+            },
+            "supported": true
+        },
+        "starlims": {
+            "name": "STARLIMS",
+            "type": "REST_API",
+            "base_url": "${LIMS_URL}",
+            "auth_method": "OAUTH2",
+            "endpoints": {
+                "submit_result": "/api/rest/v1/results",
+                "get_samples": "/api/rest/v1/samples"
+            },
+            "field_mapping": {
+                "sample_id": "sampleId",
+                "cimb": "massBalance"
+            },
+            "qbd_mapping": {
+                "experiment_name": "description",
+                "measured_cimb": "mb_result"
+            },
+            "supported": true
+        }
+    },
+    "default_system": "thermo_watson",
+    "retry_policy": {
+        "max_retries": 3,
+        "retry_delay_ms": 1000,
+        "exponential_backoff": true
+    }
+}
